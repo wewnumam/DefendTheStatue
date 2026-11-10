@@ -6,9 +6,12 @@ using ProjectTA.Module.SaveSystem;
 using ProjectTA.Module.Settings;
 using ProjectTA.Module.Tutorial;
 using ProjectTA.Utility;
+using ProjectTA.Module.Input;
+using ProjectTA.Module.PlayerCharacter;
+using ProjectTA.Module.GameConstants;
+using ProjectTA.Module.SaveSystem;
 using System.Collections;
 using UnityEngine.SceneManagement;
-
 namespace ProjectTA.Scene.Gameplay
 {
     public class GameplayLauncherLauncher : SceneLauncher<GameplayLauncherLauncher, GameplayView>
@@ -16,20 +19,25 @@ namespace ProjectTA.Scene.Gameplay
         public override string SceneName { get { return "Gameplay"; } }
 
         private readonly GameSettingsController _gameSettings = new();
+        private readonly GameConstantsController _gameConstants = new();
         private readonly SettingsController _settings = new();
         private readonly TutorialController _tutorial = new();
+        private readonly PlayerCharacterController _playerCharacter = new();
 
         protected override IController[] GetSceneDependencies()
         {
             return new IController[] {
                 new SettingsController(),
                 new TutorialController(),
+                new InputController(),
+                new PlayerCharacterController()
             };
         }
 
         protected override IConnector[] GetSceneConnectors()
         {
             return new IConnector[] {
+                new PlayerCharacterConnector()
             };
         }
 
@@ -50,6 +58,9 @@ namespace ProjectTA.Scene.Gameplay
 
             _settings.InitModel(_gameSettings.Model);
             _settings.SetView(_view.SettingsView);
+
+            _playerCharacter.InitModel(_gameConstants.Model, _gameSettings.Model);
+            _playerCharacter.SetView(_view.PlayerCharacterView);
 
             yield return null;
         }

@@ -12,3 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ee87eb2b2924a84685b991d280cb735, type: 3}
   m_Name: GameConstants
   m_EditorClassIdentifier: Assembly-CSharp::ProjectTA.Module.GameConstants.SOGameConstants
+  _isJoystickActive: 0
+  _playerConstants:
+    _enemyLayer:
+      serializedVersion: 2
+      m_Bits: 0
+    _movementSpeed: 5
+    _rotationSpeed: 5
+    _rayDistance: 100
+    _fixedYPosition: 1
+    _knockbackForce: 100

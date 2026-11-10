@@ -1,6 +1,7 @@
 using Agate.MVC.Base;
 using ProjectTA.Module.Settings;
 using ProjectTA.Module.Tutorial;
+using ProjectTA.Module.PlayerCharacter;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -12,6 +13,8 @@ namespace ProjectTA.Scene.Gameplay
         public TutorialView TutorialView { get; private set; }
         [field: SerializeField]
         public SettingsView SettingsView { get; private set; }
+        [field: SerializeField]
+        public PlayerCharacterView PlayerCharacterView { get; private set; }
 
         private UnityAction _onMainMenu;
 
