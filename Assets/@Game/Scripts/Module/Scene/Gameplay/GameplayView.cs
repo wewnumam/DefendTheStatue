@@ -2,6 +2,8 @@ using Agate.MVC.Base;
 using ProjectTA.Module.Settings;
 using ProjectTA.Module.Tutorial;
 using ProjectTA.Module.PlayerCharacter;
+using ProjectTA.Module.BulletPool;
+using ProjectTA.Module.Sword;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -15,6 +17,10 @@ namespace ProjectTA.Scene.Gameplay
         public SettingsView SettingsView { get; private set; }
         [field: SerializeField]
         public PlayerCharacterView PlayerCharacterView { get; private set; }
+        [field: SerializeField]
+        public BulletPoolView BulletPoolView { get; private set; }
+        [field: SerializeField]
+        public SwordView SwordView { get; private set; }
 
         private UnityAction _onMainMenu;
 

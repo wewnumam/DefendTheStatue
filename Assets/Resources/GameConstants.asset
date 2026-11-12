@@ -22,3 +22,9 @@ MonoBehaviour:
     _rayDistance: 100
     _fixedYPosition: 1
     _knockbackForce: 100
+  _shootingConstants:
+    _joystickShootingRange: 0.9
+    _bulletPoolSize: 25
+    _bulletShootingRate: 0.25
+    _bulletForce: 25
+    _bulletDestroyDelay: 3

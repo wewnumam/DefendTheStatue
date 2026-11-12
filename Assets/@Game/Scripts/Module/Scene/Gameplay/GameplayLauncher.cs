@@ -10,6 +10,8 @@ using ProjectTA.Module.Input;
 using ProjectTA.Module.PlayerCharacter;
 using ProjectTA.Module.GameConstants;
 using ProjectTA.Module.SaveSystem;
+using ProjectTA.Module.BulletPool;
+using ProjectTA.Module.Sword;
 using System.Collections;
 using UnityEngine.SceneManagement;
 namespace ProjectTA.Scene.Gameplay
@@ -23,6 +25,8 @@ namespace ProjectTA.Scene.Gameplay
         private readonly SettingsController _settings = new();
         private readonly TutorialController _tutorial = new();
         private readonly PlayerCharacterController _playerCharacter = new();
+        private readonly BulletPoolController _bulletPool = new();
+        private readonly SwordController _sword = new();
 
         protected override IController[] GetSceneDependencies()
         {
@@ -30,14 +34,18 @@ namespace ProjectTA.Scene.Gameplay
                 new SettingsController(),
                 new TutorialController(),
                 new InputController(),
-                new PlayerCharacterController()
+                new PlayerCharacterController(),
+                new BulletPoolController(),
+                new SwordController()
             };
         }
 
         protected override IConnector[] GetSceneConnectors()
         {
             return new IConnector[] {
-                new PlayerCharacterConnector()
+                new PlayerCharacterConnector(),
+                new BulletPoolConnector(),
+                new SwordConnector()
             };
         }
 
@@ -61,6 +69,11 @@ namespace ProjectTA.Scene.Gameplay
 
             _playerCharacter.InitModel(_gameConstants.Model, _gameSettings.Model);
             _playerCharacter.SetView(_view.PlayerCharacterView);
+
+            _bulletPool.InitModel(_gameConstants.Model);
+            _bulletPool.SetView(_view.BulletPoolView);
+
+            _sword.SetView(_view.SwordView);
 
             yield return null;
         }

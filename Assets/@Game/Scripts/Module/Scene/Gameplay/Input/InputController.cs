@@ -42,6 +42,8 @@ namespace ProjectTA.Module.Input
             InputActions.Character.Shoot.canceled += OnShootEnd;
             InputActions.Character.Aim.performed += OnStartAim;
             InputActions.Character.Aim.canceled += OnEndAim;
+            InputActions.Character.Switch.performed += OnStartSwitch;
+            InputActions.Character.Switch.canceled += OnEndSwitch;
         }
 
         public override IEnumerator Terminate()
@@ -52,6 +54,8 @@ namespace ProjectTA.Module.Input
             InputActions.Character.Shoot.canceled -= OnShootEnd;
             InputActions.Character.Aim.performed -= OnStartAim;
             InputActions.Character.Aim.canceled -= OnEndAim;
+            InputActions.Character.Switch.performed -= OnStartSwitch;
+            InputActions.Character.Switch.canceled -= OnEndSwitch;
             InputActions.Character.Disable();
 
             yield return base.Terminate();
@@ -94,6 +98,16 @@ namespace ProjectTA.Module.Input
         public void OnEndAim(InputAction.CallbackContext context)
         {
             Publish(new RotatePlayerCharacterMessage(Vector2.zero));
+        }
+
+        public void OnStartSwitch(InputAction.CallbackContext context)
+        {
+            Publish(new SwitchWeaponMessage(context.ReadValue<float>()));
+        }
+
+        public void OnEndSwitch(InputAction.CallbackContext context)
+        {
+            Publish(new SwitchWeaponMessage(0f));
         }
     }
 

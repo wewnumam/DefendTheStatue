@@ -12,8 +12,12 @@ namespace ProjectTA.Module.GameConstants
         [Header("Player Constants")]
         [SerializeField] private PlayerConstants _playerConstants;
 
+        [Header("Shooting Constants")]
+        [SerializeField] private ShootingConstants _shootingConstants;
+
         public bool IsJoystickActive => _isJoystickActive;
         public PlayerConstants PlayerConstants => _playerConstants;
+        public ShootingConstants Shooting => _shootingConstants;
     }
 
     [Serializable]
@@ -32,5 +36,22 @@ namespace ProjectTA.Module.GameConstants
         public float RayDistance => _rayDistance;
         public float FixedYPosition => _fixedYPosition;
         public float KnockbackForce => _knockbackForce;
+    }
+
+    [Serializable]
+    public class ShootingConstants
+    {
+        [Range(0.0f, 1.0f)]
+        [SerializeField] private float _joystickShootingRange;
+        [SerializeField] private int _bulletPoolSize;
+        [SerializeField] private float _bulletShootingRate;
+        [SerializeField] private float _bulletForce;
+        [SerializeField] private float _bulletDestroyDelay;
+
+        public float JoystickShootingRange => _joystickShootingRange;
+        public int BulletPoolSize => _bulletPoolSize;
+        public float BulletShootingRate => _bulletShootingRate;
+        public float BulletForce => _bulletForce;
+        public float BulletDestroyDelay => _bulletDestroyDelay;
     }
 }
