@@ -67,5 +67,26 @@ namespace ProjectTA.Module.PlayerCharacter
         {
             _view.SetAim(message.Aim);
         }
+
+        /// <summary>
+        /// A kill pays out here rather than in the monster module, so gold keeps a single owner.
+        /// The model already has the gold field; this only routes the message into it.
+        /// </summary>
+        public void OnMonsterKilled(MonsterKilledMessage message)
+        {
+            _model.AddGold(message.GoldValue);
+            PublishStatsChanged();
+        }
+
+        private void PublishStatsChanged()
+        {
+            Publish(new PlayerStatsChangedMessage(
+                _model.Health,
+                _model.MaxHealth,
+                _model.Stamina,
+                _model.Mana,
+                _model.Gold,
+                _model.Arrows));
+        }
     }
 }

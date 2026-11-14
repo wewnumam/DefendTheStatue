@@ -12,6 +12,9 @@ namespace ProjectTA.Module.Sword
         /// </summary>
         private bool _isEquipped = true;
 
+        /// <summary>Firing the bow must not swing the sword, so the swing asks this before it lands.</summary>
+        public bool IsEquipped => _isEquipped;
+
         private void Awake()
         {
             SetHitboxActive(false);

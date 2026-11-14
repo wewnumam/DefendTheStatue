@@ -16,8 +16,25 @@ namespace ProjectTA.Module.Input
 
         public IEnumerable<object> PublishedMessages => _publishedMessages;
 
+        /// <summary>
+        /// The actions are enabled in Initialize, but the views are only wired during LaunchScene.
+        /// A pointer move landing in between would reach a controller that has no view yet, so
+        /// input is dropped until the launcher says the scene is ready.
+        /// </summary>
+        public bool IsReady { get; private set; }
+
+        public void SetReady()
+        {
+            IsReady = true;
+        }
+
         protected override void Publish<TMessage>(TMessage message)
         {
+            if (!IsReady)
+            {
+                return;
+            }
+
             // Add the new message to the queue
             _publishedMessages.Enqueue(message);
 

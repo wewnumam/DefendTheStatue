@@ -133,6 +133,16 @@ namespace ProjectTA.Module.Input
                     ""interactions"": """",
                     ""initialStateCheck"": false,
                     ""priority"": 0
+                },
+                {
+                    ""name"": ""Build"",
+                    ""type"": ""Button"",
+                    ""id"": ""d2f9ce38-7036-4a8a-8786-14431acfeb82"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
                 }
             ],
             ""bindings"": [
@@ -245,6 +255,17 @@ namespace ProjectTA.Module.Input
                     ""action"": ""Switch"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""df66ab06-7403-4dd7-a8b0-861f47c6b6be"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Build"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -257,6 +278,7 @@ namespace ProjectTA.Module.Input
             m_Character_Shoot = m_Character.FindAction("Shoot", throwIfNotFound: true);
             m_Character_Aim = m_Character.FindAction("Aim", throwIfNotFound: true);
             m_Character_Switch = m_Character.FindAction("Switch", throwIfNotFound: true);
+            m_Character_Build = m_Character.FindAction("Build", throwIfNotFound: true);
         }
 
         ~@InputActionManager()
@@ -341,6 +363,7 @@ namespace ProjectTA.Module.Input
         private readonly InputAction m_Character_Shoot;
         private readonly InputAction m_Character_Aim;
         private readonly InputAction m_Character_Switch;
+        private readonly InputAction m_Character_Build;
         /// <summary>
         /// Provides access to input actions defined in input action map "Character".
         /// </summary>
@@ -368,6 +391,10 @@ namespace ProjectTA.Module.Input
             /// Provides access to the underlying input action "Character/Switch".
             /// </summary>
             public InputAction @Switch => m_Wrapper.m_Character_Switch;
+            /// <summary>
+            /// Provides access to the underlying input action "Character/Build".
+            /// </summary>
+            public InputAction @Build => m_Wrapper.m_Character_Build;
             /// <summary>
             /// Provides access to the underlying input action map instance.
             /// </summary>
@@ -406,6 +433,9 @@ namespace ProjectTA.Module.Input
                 @Switch.started += instance.OnSwitch;
                 @Switch.performed += instance.OnSwitch;
                 @Switch.canceled += instance.OnSwitch;
+                @Build.started += instance.OnBuild;
+                @Build.performed += instance.OnBuild;
+                @Build.canceled += instance.OnBuild;
             }
 
             /// <summary>
@@ -429,6 +459,9 @@ namespace ProjectTA.Module.Input
                 @Switch.started -= instance.OnSwitch;
                 @Switch.performed -= instance.OnSwitch;
                 @Switch.canceled -= instance.OnSwitch;
+                @Build.started -= instance.OnBuild;
+                @Build.performed -= instance.OnBuild;
+                @Build.canceled -= instance.OnBuild;
             }
 
             /// <summary>
@@ -497,6 +530,13 @@ namespace ProjectTA.Module.Input
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnSwitch(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Build" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnBuild(InputAction.CallbackContext context);
         }
     }
 }

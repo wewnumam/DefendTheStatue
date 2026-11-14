@@ -22,6 +22,36 @@ MonoBehaviour:
     _rayDistance: 100
     _fixedYPosition: 1
     _knockbackForce: 100
+    _maxHealth: 100
+    _maxStamina: 50
+    _maxMana: 20
+    _startingGold: 50000
+    _staminaBlockDrainPerSecond: 24
+    _staminaRegenPerSecond: 9
+    _manaRegenPerSecond: 3
+    _healPerSecond: 18
+    _arrowRespawnSeconds: 10
+    _maxArrowCapacity: 6
+    _dashSpeed: 1080
+    _dashDurationSeconds: 0.2
+  _skillConstants:
+    _skill1RequiredStatueLevel: 3
+    _skill2RequiredStatueLevel: 5
+    _skill3RequiredStatueLevel: 7
+    _skill1CooldownSeconds: 6
+    _skill1ManaCost: 5
+    _skill2CooldownSeconds: 6
+    _skill2ManaCost: 20
+    _lockShootDurationSeconds: 8
+    _timeSlashRadius: 360
+    _timeSlashDurationSeconds: 6
+    _timeSlashSlowFactor: 0.2
+    _skill3CooldownSeconds: 8
+    _skill3ManaCost: 20
+    _skill3DurationSeconds: 5
+    _berserkerSpeedMultiplier: 3
+    _berserkerDamageMultiplier: 3
+    _cloneModeAttackCooldownMultiplier: 0.5
   _shootingConstants:
     _joystickShootingRange: 0.9
     _bulletPoolSize: 25

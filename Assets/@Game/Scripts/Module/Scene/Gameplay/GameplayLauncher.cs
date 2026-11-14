@@ -12,6 +12,12 @@ using ProjectTA.Module.GameConstants;
 using ProjectTA.Module.SaveSystem;
 using ProjectTA.Module.BulletPool;
 using ProjectTA.Module.Sword;
+using ProjectTA.Module.GameFlow;
+using ProjectTA.Module.Monster;
+using ProjectTA.Module.Statue;
+using ProjectTA.Module.Territory;
+using ProjectTA.Module.Build;
+using ProjectTA.Module.Tower;
 using System.Collections;
 using UnityEngine.SceneManagement;
 namespace ProjectTA.Scene.Gameplay
@@ -22,11 +28,18 @@ namespace ProjectTA.Scene.Gameplay
 
         private readonly GameSettingsController _gameSettings = new();
         private readonly GameConstantsController _gameConstants = new();
+        private readonly InputController _input = new();
         private readonly SettingsController _settings = new();
         private readonly TutorialController _tutorial = new();
         private readonly PlayerCharacterController _playerCharacter = new();
         private readonly BulletPoolController _bulletPool = new();
         private readonly SwordController _sword = new();
+        private readonly GameFlowController _gameFlow = new();
+        private readonly MonsterPoolController _monsterPool = new();
+        private readonly StatueController _statue = new();
+        private readonly TerritoryController _territory = new();
+        private readonly BuildController _build = new();
+        private readonly TowerController _tower = new();
 
         protected override IController[] GetSceneDependencies()
         {
@@ -36,7 +49,13 @@ namespace ProjectTA.Scene.Gameplay
                 new InputController(),
                 new PlayerCharacterController(),
                 new BulletPoolController(),
-                new SwordController()
+                new SwordController(),
+                new GameFlowController(),
+                new MonsterPoolController(),
+                new StatueController(),
+                new TerritoryController(),
+                new BuildController(),
+                new TowerController()
             };
         }
 
@@ -45,7 +64,13 @@ namespace ProjectTA.Scene.Gameplay
             return new IConnector[] {
                 new PlayerCharacterConnector(),
                 new BulletPoolConnector(),
-                new SwordConnector()
+                new SwordConnector(),
+                new GameFlowConnector(),
+                new MonsterPoolConnector(),
+                new StatueConnector(),
+                new TerritoryConnector(),
+                new BuildConnector(),
+                new TowerConnector()
             };
         }
 
@@ -74,6 +99,16 @@ namespace ProjectTA.Scene.Gameplay
             _bulletPool.SetView(_view.BulletPoolView);
 
             _sword.SetView(_view.SwordView);
+
+            _gameFlow.SetView(_view.EnsureGameFlowView());
+            _monsterPool.SetView(_view.EnsureMonsterPoolView());
+
+            _territory.SetView(_view.EnsureTerritoryView());
+            _statue.SetView(_view.EnsureStatueView());
+            _build.SetView(_view.EnsureBuildView());
+            _tower.SetView(_view.EnsureTowerView());
+
+            _input.SetReady();
 
             yield return null;
         }

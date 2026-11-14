@@ -1,4 +1,5 @@
 using Agate.MVC.Base;
+using ProjectTA.Module.Monster;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -12,6 +13,7 @@ namespace ProjectTA.Module.Bullet
         private float _destroyDelay;
         private bool _hasHitTarget;
         private UnityAction _onCollideWithCollider;
+        private UnityAction<int, Vector2> _onHitMonster;
 
         public Rigidbody2D Rb => _rb;
         public float LaunchForce => _launchForce;
@@ -19,6 +21,15 @@ namespace ProjectTA.Module.Bullet
         public void SetCallback(UnityAction onCollideWithCollider)
         {
             _onCollideWithCollider = onCollideWithCollider;
+        }
+
+        /// <summary>
+        /// Reports the monster the arrow buried itself in. The id comes off the collider, so a cheap
+        /// area resolve is not needed to know what was hit.
+        /// </summary>
+        public void SetMonsterHitCallback(UnityAction<int, Vector2> onHitMonster)
+        {
+            _onHitMonster = onHitMonster;
         }
 
         public void SetLaunchForce(float launchForce)
@@ -63,6 +74,12 @@ namespace ProjectTA.Module.Bullet
             // Stick the bullet into the target
             transform.position = collision.GetContact(0).point;
             transform.SetParent(collision.transform, true);
+
+            MonsterHitbox hitbox = collision.collider.GetComponentInParent<MonsterHitbox>();
+            if (hitbox != null && hitbox.MonsterId >= 0)
+            {
+                _onHitMonster?.Invoke(hitbox.MonsterId, transform.position);
+            }
 
             // Despawn the bullet after a delay
             CancelInvoke(nameof(OnCollideWithCollider));

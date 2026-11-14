@@ -11,12 +11,14 @@ namespace ProjectTA.Module.PlayerCharacter
         {
             Subscribe<MovePlayerCharacterMessage>(_playerCharacter.OnMove);
             Subscribe<RotatePlayerCharacterMessage>(_playerCharacter.OnRotate);
+            Subscribe<MonsterKilledMessage>(_playerCharacter.OnMonsterKilled);
         }
 
         protected override void Disconnect()
         {
             Unsubscribe<MovePlayerCharacterMessage>(_playerCharacter.OnMove);
             Unsubscribe<RotatePlayerCharacterMessage>(_playerCharacter.OnRotate);
+            Unsubscribe<MonsterKilledMessage>(_playerCharacter.OnMonsterKilled);
         }
     }
 }
