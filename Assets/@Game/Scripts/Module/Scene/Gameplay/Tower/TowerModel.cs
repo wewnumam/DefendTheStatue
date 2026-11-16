@@ -1,29 +1,28 @@
 using System.Collections.Generic;
 using Agate.MVC.Base;
+using ProjectTA.Module.GameConstants;
 using ProjectTA.Utility;
 using UnityEngine;
 
 namespace ProjectTA.Module.Tower
 {
-    /// <summary>One built tower. Reference game: range 300, 50-frame cadence, 15 damage.</summary>
+    /// <summary>One built tower. Footprint, reach, cadence and damage all come from TowerConstants.</summary>
     public class TowerState
     {
-        public TowerState(Vector2 position, int territoryIndex, int cornerIndex)
+        public TowerState(Vector2 position, int territoryIndex, int cornerIndex, TowerConstants constants)
         {
             Position = position;
             TerritoryIndex = territoryIndex;
             CornerIndex = cornerIndex;
+            Constants = constants;
         }
 
-        public const float Size = 32f;
-        public const float AttackRange = 300f;
-        public const int AttackRateFrames = 50;
-        public const float Damage = 15f;
+        public TowerConstants Constants { get; }
 
         public Vector2 Position { get; }
         public int TerritoryIndex { get; }
         public int CornerIndex { get; }
-        public float AttackRangeSquared => AttackRange * AttackRange;
+        public float AttackRangeSquared => Constants.AttackRange * Constants.AttackRange;
         public float CooldownRemaining { get; set; }
         public float AimAngle { get; set; }
 
@@ -37,16 +36,31 @@ namespace ProjectTA.Module.Tower
             }
         }
 
-        /// <summary>Restarts the reference 50-frame cadence.</summary>
+        /// <summary>Restarts the reference cadence.</summary>
         public void StartCooldown()
         {
-            CooldownRemaining = GameTime.FramesToSeconds(AttackRateFrames);
+            CooldownRemaining = GameTime.FramesToSeconds(Constants.AttackRateFrames);
         }
     }
 
     public class TowerModel : BaseModel
     {
         private readonly List<TowerState> _towers = new List<TowerState>();
+
+        /// <summary>Defaults match the reference asset, so unit tests need no asset.</summary>
+        private TowerConstants _constants = new TowerConstants();
+
+        public TowerConstants Constants => _constants;
+
+        public void SetTowerConstants(TowerConstants constants)
+        {
+            if (constants != null)
+            {
+                _constants = constants;
+            }
+
+            SetDataAsDirty();
+        }
 
         public IReadOnlyList<TowerState> Towers => _towers;
         public int Count => _towers.Count;
@@ -58,7 +72,7 @@ namespace ProjectTA.Module.Tower
 
         public void Add(Vector2 position, int territoryIndex, int cornerIndex)
         {
-            _towers.Add(new TowerState(position, territoryIndex, cornerIndex));
+            _towers.Add(new TowerState(position, territoryIndex, cornerIndex, _constants));
             SetDataAsDirty();
         }
 
@@ -111,7 +125,7 @@ namespace ProjectTA.Module.Tower
             tower.AimAngle = Mathf.Atan2(toTarget.y, toTarget.x);
             tower.StartCooldown();
             SetDataAsDirty();
-            return TowerState.Damage;
+            return _constants.Damage;
         }
 
         public void Clear()

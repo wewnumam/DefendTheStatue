@@ -4,56 +4,64 @@ using UnityEngine;
 namespace ProjectTA.Module.Monster
 {
     /// <summary>
-    /// One monster on screen. Placeholder art: a square quad built at runtime, no prefab needed, so
-    /// the core slice runs without any Editor authoring. Swap in a sprite later by assigning
-    /// MonsterPoolView's prefab — the pool prefers it when it is set.
+    /// One monster on screen. The prefab carries the body, collider, hitbox and sprite; this view only
+    /// reads and writes them, so nothing is added at runtime.
     /// </summary>
     public class MonsterView : BaseView
     {
-        private SpriteRenderer _renderer;
+        [SerializeField] private Rigidbody2D _body;
+        [SerializeField] private SpriteRenderer _renderer;
+        [SerializeField] private MonsterHitbox _hitbox;
+
         private Color _baseColor;
 
-        public void Init(SpriteRenderer renderer, Color baseColor)
+        public Vector2 Position => _body != null ? _body.position : (Vector2)transform.position;
+
+        private void Awake()
         {
-            _renderer = renderer;
-            _baseColor = baseColor;
+            if (_renderer != null)
+            {
+                _baseColor = _renderer.color;
+            }
         }
 
+        /// <summary>Spawn and recycle use this: it teleports the body, so no velocity survives the move.</summary>
         public void SetPosition(Vector2 position)
         {
+            if (_body != null)
+            {
+                _body.position = position;
+                _body.linearVelocity = Vector2.zero;
+            }
+
             transform.position = new Vector3(position.x, position.y, 0f);
         }
 
-        /// <summary>
-        /// Every monster needs something an arrow can physically stop on and read an id from. The
-        /// placeholder square gets it from the pool; a prefab has to carry it already.
-        /// </summary>
-        public MonsterHitbox EnsureHitbox()
+        /// <summary>Pool-driven walk. Zero parks the monster on the statue clearance.</summary>
+        public void SetVelocity(Vector2 velocity)
         {
-            MonsterHitbox hitbox = GetComponent<MonsterHitbox>();
-            if (hitbox == null)
+            if (_body == null)
             {
-                hitbox = gameObject.AddComponent<MonsterHitbox>();
+                return;
             }
 
-            if (GetComponent<Collider2D>() == null && GetComponentInChildren<Collider2D>() == null)
-            {
-                gameObject.AddComponent<BoxCollider2D>();
-            }
-
-            return hitbox;
+            _body.linearVelocity = velocity;
         }
 
         public void SetMonsterId(int monsterId)
         {
-            EnsureHitbox().MonsterId = monsterId;
+            if (_hitbox != null)
+            {
+                _hitbox.MonsterId = monsterId;
+            }
         }
 
         public void PlayHitFlash()
         {
             if (_renderer != null)
             {
-                _renderer.color = Color.white;
+                // Art has no tint of its own, so a white flash would be invisible: use a red one instead.
+                _renderer.color = HitFlashColor;
             }
         }
 
@@ -64,5 +72,7 @@ namespace ProjectTA.Module.Monster
                 _renderer.color = _baseColor;
             }
         }
+
+        private static readonly Color HitFlashColor = new Color(1f, 0.35f, 0.35f);
     }
 }

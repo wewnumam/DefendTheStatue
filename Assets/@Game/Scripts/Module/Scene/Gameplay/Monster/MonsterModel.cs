@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Agate.MVC.Base;
+using ProjectTA.Module.GameConstants;
 using UnityEngine;
 
 namespace ProjectTA.Module.Monster
@@ -13,42 +14,33 @@ namespace ProjectTA.Module.Monster
     /// </summary>
     public class MonsterState
     {
-        public MonsterState(int id, Vector2 position, bool inHealRadius)
+        public MonsterState(int id, Vector2 position, bool inHealRadius, MonsterConstants constants)
         {
             Id = id;
             Position = position;
             InHealRadius = inHealRadius;
+            Constants = constants;
 
             // Reference: monsters spawned inside the statue heal radius are twice as tough and
             // worth three times the gold.
-            MaxHealth = inHealRadius ? HealRadiusHealth : BaseHealth;
+            MaxHealth = inHealRadius ? constants.HealRadiusHealth : constants.BaseHealth;
             Health = MaxHealth;
-            Damage = inHealRadius ? HealRadiusDamage : BaseDamage;
-            GoldValue = inHealRadius ? HealRadiusGoldValue : BaseGoldValue;
+            Damage = inHealRadius ? constants.HealRadiusDamage : constants.BaseDamage;
+            GoldValue = inHealRadius ? constants.HealRadiusGoldValue : constants.BaseGoldValue;
+            AttackIntervalSeconds = constants.AttackIntervalSeconds;
+            AttackReach = constants.AttackReach;
         }
 
-        public const float Size = 25f;
-        public const float Speed = 1.5f;
+        /// <summary>Body, stats and bite cadence: owned by the GameConstants asset, not by code.</summary>
+        public MonsterConstants Constants { get; }
 
-        /// <summary>Reference: 1.5 units per frame. The port ticks in seconds at the reference's 60 fps.</summary>
-        public const float SpeedPerSecond = Speed * 60f;
+        public float AttackIntervalSeconds { get; }
+        public float AttackReach { get; }
 
-        /// <summary>Reference statue size, which sets the distance a monster comes to rest at.</summary>
-        public const float StatueSize = 50f;
-
-        /// <summary>Reference: a monster walks while it is further out than (m.size + statue.size) / 2 + 2.</summary>
-        public const float StatueStopDistance = (Size + StatueSize) * 0.5f + 2f;
-        public const float BaseHealth = 20f;
-        public const float HealRadiusHealth = 40f;
-        public const float BaseDamage = 10f;
-        public const float HealRadiusDamage = 30f;
-        public const int BaseGoldValue = 5;
-        public const int HealRadiusGoldValue = 15;
-
-        /// <summary>
-        /// Stable handle. Indexes shift when a corpse is removed, so views and messages talk in ids.
-        /// </summary>
+        /// <summary>Stable handle. Indexes shift when a corpse is removed, so views and messages talk in ids.</summary>
         public int Id { get; }
+
+        public float AttackCooldown { get; private set; }
 
         public Vector2 Position { get; set; }
         public bool InHealRadius { get; }
@@ -72,6 +64,23 @@ namespace ProjectTA.Module.Monster
             Health = Mathf.Max(0f, Health - amount);
             return IsDead ? GoldValue : 0;
         }
+
+        public void TickAttackCooldown(float deltaSeconds)
+        {
+            AttackCooldown = Mathf.Max(0f, AttackCooldown - deltaSeconds);
+        }
+
+        /// <summary>True when this monster bit the statue this tick; starts the next cooldown.</summary>
+        public bool TryAttack(float distanceToStatue)
+        {
+            if (IsDead || distanceToStatue > AttackReach || AttackCooldown > 0f)
+            {
+                return false;
+            }
+
+            AttackCooldown = AttackIntervalSeconds;
+            return true;
+        }
     }
 
     /// <summary>
@@ -83,6 +92,21 @@ namespace ProjectTA.Module.Monster
     {
         private readonly List<MonsterState> _monsters = new List<MonsterState>();
         private int _nextId;
+
+        /// <summary>Filled from the GameConstants asset by the pool controller; defaults keep unit tests honest.</summary>
+        private MonsterConstants _constants = new MonsterConstants();
+
+        public MonsterConstants Constants => _constants;
+
+        public void SetMonsterConstants(MonsterConstants constants)
+        {
+            if (constants != null)
+            {
+                _constants = constants;
+            }
+
+            SetDataAsDirty();
+        }
 
         public IReadOnlyList<MonsterState> Monsters => _monsters;
         public int Count => _monsters.Count;
@@ -104,27 +128,52 @@ namespace ProjectTA.Module.Monster
         public int Add(Vector2 position, bool inHealRadius)
         {
             int id = _nextId++;
-            _monsters.Add(new MonsterState(id, position, inHealRadius));
+            _monsters.Add(new MonsterState(id, position, inHealRadius, _constants));
             SetDataAsDirty();
             return id;
         }
 
         /// <summary>
-        /// Walks every live monster toward <paramref name="target"/> at the reference speed and stops it
-        /// at <paramref name="stopDistance"/>. Returns how many moved.
-        ///
-        /// The reference also re-routes a monster that is outside a walled territory through that wall's
-        /// nearest gap; walls are still deferred, so monsters walk straight for now.
+        /// Desired move for one monster walking at <paramref name="target"/>, in units per second. Zero
+        /// once it is on the statue clearance: physics then holds it there while it bites.
         /// </summary>
-        public int Advance(float deltaSeconds, Vector2 target, float stopDistance)
+        public Vector2 GetVelocity(MonsterState monster, Vector2 target, float stopDistance, float speedMultiplier)
         {
-            if (deltaSeconds <= 0f)
+            if (monster == null || monster.IsDead)
             {
-                return 0;
+                return Vector2.zero;
             }
 
-            float step = MonsterState.SpeedPerSecond * deltaSeconds;
-            int moved = 0;
+            Vector2 toTarget = target - monster.Position;
+            float distance = toTarget.magnitude;
+            if (distance <= stopDistance || distance <= 0f)
+            {
+                return Vector2.zero;
+            }
+
+            return (toTarget / distance) * (_constants.SpeedPerSecond * Mathf.Clamp01(speedMultiplier));
+        }
+
+        /// <summary>
+        /// Writes back where physics actually put a monster. Deliberately no SetDataAsDirty: the body
+        /// moves it, and the view already knows. Other modules read this copy for range checks.
+        /// </summary>
+        public void SetPosition(int monsterId, Vector2 position)
+        {
+            MonsterState monster = Get(monsterId);
+            if (monster != null)
+            {
+                monster.Position = position;
+            }
+        }
+
+        /// <summary>
+        /// Ticks every monster's attack clock and returns the total damage the ones in reach dealt this
+        /// tick. The reference bites once a second for the monster's rolled damage.
+        /// </summary>
+        public float CollectStatueDamage(float deltaSeconds, Vector2 statuePosition)
+        {
+            float total = 0f;
 
             for (int i = 0; i < _monsters.Count; i++)
             {
@@ -134,25 +183,16 @@ namespace ProjectTA.Module.Monster
                     continue;
                 }
 
-                Vector2 toTarget = target - monster.Position;
-                float distance = toTarget.magnitude;
-                if (distance <= stopDistance || distance <= 0f)
+                monster.TickAttackCooldown(deltaSeconds);
+
+                float distance = (monster.Position - statuePosition).magnitude;
+                if (monster.TryAttack(distance))
                 {
-                    continue;
+                    total += monster.Damage;
                 }
-
-                // Clamped, so a long frame stops on the clearance instead of stepping past it: the
-                // reference recovers from the overshoot in its push-out pass, and there is none here.
-                monster.Position += (toTarget / distance) * Mathf.Min(step, distance - stopDistance);
-                moved++;
             }
 
-            if (moved > 0)
-            {
-                SetDataAsDirty();
-            }
-
-            return moved;
+            return total;
         }
 
         /// <summary>Returns the gold awarded, so the caller can credit the player.</summary>

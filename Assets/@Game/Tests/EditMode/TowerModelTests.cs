@@ -22,10 +22,10 @@ namespace ProjectTA.Tests.EditMode
         [Test]
         public void Constants_MatchTheReferenceTower()
         {
-            Assert.That(TowerState.Size, Is.EqualTo(32f));
-            Assert.That(TowerState.AttackRange, Is.EqualTo(300f));
-            Assert.That(TowerState.AttackRateFrames, Is.EqualTo(50));
-            Assert.That(TowerState.Damage, Is.EqualTo(15f));
+            Assert.That(_model.Constants.Size, Is.EqualTo(32f));
+            Assert.That(_model.Constants.AttackRange, Is.EqualTo(300f));
+            Assert.That(_model.Constants.AttackRateFrames, Is.EqualTo(50));
+            Assert.That(_model.Constants.Damage, Is.EqualTo(15f));
             Assert.That(GameTime.FramesToSeconds(50), Is.EqualTo(50f / 60f).Within(1e-5f));
         }
 
@@ -43,7 +43,7 @@ namespace ProjectTA.Tests.EditMode
             _model.Add(Vector2.zero, 0, 0);
             _model.TryFire(0, new Vector2(100f, 0f));
 
-            float cadence = GameTime.FramesToSeconds(TowerState.AttackRateFrames);
+            float cadence = GameTime.FramesToSeconds(_model.Constants.AttackRateFrames);
             Assert.That(_model.Get(0).CooldownRemaining, Is.EqualTo(cadence).Within(1e-5f));
             Assert.That(_model.TryFire(0, new Vector2(100f, 0f)), Is.EqualTo(0f), "still cooling down");
 

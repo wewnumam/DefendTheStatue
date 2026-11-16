@@ -30,8 +30,8 @@ namespace ProjectTA.Tests.EditMode
             Assert.That(monster.Damage, Is.EqualTo(10f));
             Assert.That(monster.GoldValue, Is.EqualTo(5));
             Assert.That(monster.InHealRadius, Is.False);
-            Assert.That(MonsterState.Size, Is.EqualTo(25f));
-            Assert.That(MonsterState.Speed, Is.EqualTo(1.5f));
+            Assert.That(_model.Constants.Size, Is.EqualTo(25f));
+            Assert.That(_model.Constants.SpeedPerSecond, Is.EqualTo(90f), "1.5 per reference frame at 60 fps");
         }
 
         [Test]
@@ -169,37 +169,61 @@ namespace ProjectTA.Tests.EditMode
         }
 
         [Test]
-        public void Advance_WalksAMonsterAtTheReferenceSpeed()
+        public void GetVelocity_WalksAtTheReferenceSpeed()
         {
             int id = _model.Add(new Vector2(0f, -400f), false);
+            MonsterState monster = _model.Get(id);
 
-            Assert.That(MonsterState.SpeedPerSecond, Is.EqualTo(90f), "1.5 per reference frame at 60 fps");
-            Assert.That(_model.Advance(1f, Vector2.zero, MonsterState.StatueStopDistance), Is.EqualTo(1));
-            Assert.That(_model.Get(id).Position.y, Is.EqualTo(-400f + 90f).Within(0.001f));
+            Assert.That(_model.Constants.SpeedPerSecond, Is.EqualTo(90f), "1.5 per reference frame at 60 fps");
+
+            Vector2 velocity = _model.GetVelocity(monster, Vector2.zero, _model.Constants.StopDistance, 1f);
+            Assert.That(velocity.magnitude, Is.EqualTo(90f).Within(0.001f));
+            Assert.That(velocity.normalized, Is.EqualTo(Vector2.up));
         }
 
         [Test]
-        public void Advance_StopsOnTheStatueClearanceInsteadOfOvershooting()
+        public void GetVelocity_IsZeroOnTheStatueClearance()
         {
-            int id = _model.Add(new Vector2(0f, MonsterState.StatueStopDistance + 1f), false);
+            int id = _model.Add(new Vector2(0f, _model.Constants.StopDistance), false);
 
-            _model.Advance(10f, Vector2.zero, MonsterState.StatueStopDistance);
-
-            Assert.That(MonsterState.StatueStopDistance, Is.EqualTo(39.5f), "(25 + 50) / 2 + 2");
-            Assert.That(_model.Get(id).Position.magnitude, Is.EqualTo(MonsterState.StatueStopDistance).Within(0.01f));
+            Assert.That(_model.Constants.StopDistance, Is.EqualTo(39.5f), "(25 + 50) / 2 + 2");
+            Assert.That(
+                _model.GetVelocity(_model.Get(id), Vector2.zero, _model.Constants.StopDistance, 1f),
+                Is.EqualTo(Vector2.zero));
         }
 
         [Test]
-        public void Advance_LeavesSettledAndDeadMonstersWhereTheyAre()
+        public void GetVelocity_IgnoresDeadAndMissingMonsters()
         {
-            int settled = _model.Add(new Vector2(0f, MonsterState.StatueStopDistance), false);
             int dying = _model.Add(new Vector2(0f, 500f), false);
             _model.ApplyDamage(dying, 20f);
 
-            Assert.That(_model.Advance(1f, Vector2.zero, MonsterState.StatueStopDistance), Is.EqualTo(0));
-            Assert.That(_model.Advance(0f, Vector2.zero, MonsterState.StatueStopDistance), Is.EqualTo(0));
-            Assert.That(_model.Get(settled).Position.y, Is.EqualTo(MonsterState.StatueStopDistance));
-            Assert.That(_model.Get(dying).Position.y, Is.EqualTo(500f));
+            Assert.That(
+                _model.GetVelocity(_model.Get(dying), Vector2.zero, _model.Constants.StopDistance, 1f),
+                Is.EqualTo(Vector2.zero));
+            Assert.That(
+                _model.GetVelocity(null, Vector2.zero, _model.Constants.StopDistance, 1f),
+                Is.EqualTo(Vector2.zero));
+        }
+
+        [Test]
+        public void GetVelocity_ScalesWithTheSlowFieldMultiplier()
+        {
+            int id = _model.Add(new Vector2(0f, -400f), false);
+
+            Vector2 velocity = _model.GetVelocity(_model.Get(id), Vector2.zero, _model.Constants.StopDistance, 0.2f);
+
+            Assert.That(velocity.magnitude, Is.EqualTo(18f).Within(0.001f), "90 x 0.2");
+        }
+
+        [Test]
+        public void SetPosition_StoresWherePhysicsPutTheMonster()
+        {
+            int id = _model.Add(Vector2.zero, false);
+
+            _model.SetPosition(id, new Vector2(120f, -30f));
+
+            Assert.That(_model.Get(id).Position, Is.EqualTo(new Vector2(120f, -30f)));
         }
 
         [Test]
@@ -211,6 +235,21 @@ namespace ProjectTA.Tests.EditMode
 
             Assert.That(_model.Count, Is.EqualTo(0));
             Assert.That(_model.Get(0), Is.Null);
+        }
+
+        [Test]
+        public void CollectStatueDamage_BitesOncePerSecondAndOnlyInReach()
+        {
+            _model.Add(new Vector2(0f, _model.Constants.StopDistance), false);
+            int far = _model.Add(new Vector2(0f, 500f), false);
+
+            Assert.That(_model.CollectStatueDamage(0f, Vector2.zero), Is.EqualTo(_model.Constants.BaseDamage));
+
+            // Same second: the cooldown is still running.
+            Assert.That(_model.CollectStatueDamage(0.5f, Vector2.zero), Is.EqualTo(0f));
+
+            Assert.That(_model.CollectStatueDamage(0.5f, Vector2.zero), Is.EqualTo(_model.Constants.BaseDamage));
+            Assert.That(_model.Get(far).AttackCooldown, Is.EqualTo(0f), "out of reach, clock stays at zero");
         }
     }
 }

@@ -1,5 +1,6 @@
 using Agate.MVC.Base;
 using ProjectTA.Message;
+using ProjectTA.Module.GameConstants;
 using ProjectTA.Module.Statue;
 using ProjectTA.Module.Territory;
 using ProjectTA.Utility;
@@ -14,13 +15,26 @@ namespace ProjectTA.Module.Build
     /// </summary>
     public class BuildController : ObjectController<BuildController, BuildView>
     {
-        private const int RingCount = 3;
+        /// <summary>Ring geometry comes from the GameConstants asset, so the ring count is not fixed here.</summary>
+        private TerritoryLayout _layout = new TerritoryLayout(new TerritoryConstants());
 
-        private readonly bool[] _unlocked = new bool[RingCount];
-        private readonly bool[,] _towersBuilt = new bool[RingCount, TerritoryState.TowerCount];
-        private readonly bool[,] _wallsBuilt = new bool[RingCount, TerritoryState.WallSegmentCount];
+        private bool[] _unlocked = System.Array.Empty<bool>();
+        private bool[,] _towersBuilt = new bool[0, 0];
+        private bool[,] _wallsBuilt = new bool[0, 0];
         private int _statueLevel = StatueModel.MinLevel;
         private int _gold;
+
+        public void InitModel(IGameConstantsModel gameConstants)
+        {
+            if (gameConstants == null || gameConstants.GameConstants == null)
+            {
+                Debug.LogError("GAMECONSTANTS IS NULL");
+                return;
+            }
+
+            _layout = new TerritoryLayout(gameConstants.GameConstants.TerritoryConstants);
+            ResetProgress();
+        }
 
         public override void SetView(BuildView view)
         {
@@ -31,7 +45,7 @@ namespace ProjectTA.Module.Build
 
         public void OnTerritoryUnlocked(TerritoryUnlockedMessage message)
         {
-            if (message.TerritoryIndex >= 0 && message.TerritoryIndex < RingCount)
+            if (message.TerritoryIndex >= 0 && message.TerritoryIndex < _unlocked.Length)
             {
                 _unlocked[message.TerritoryIndex] = true;
             }
@@ -73,7 +87,7 @@ namespace ProjectTA.Module.Build
             bool isTower = false;
             float bestDistance = float.MaxValue;
 
-            for (int t = 0; t < RingCount; t++)
+            for (int t = 0; t < _layout.RingCount; t++)
             {
                 if (!_unlocked[t])
                 {
@@ -89,7 +103,7 @@ namespace ProjectTA.Module.Build
                             continue;
                         }
 
-                        float distance = (TerritoryModel.GetCornerPosition(t, corner) - cursor).sqrMagnitude;
+                        float distance = (_layout.GetCornerPosition(t, corner) - cursor).sqrMagnitude;
                         if (distance < bestDistance)
                         {
                             bestDistance = distance;
@@ -109,7 +123,7 @@ namespace ProjectTA.Module.Build
                             continue;
                         }
 
-                        TerritoryModel.GetWallSegment(t, segment, out Vector2 start, out Vector2 end);
+                        _layout.GetWallSegment(t, segment, out Vector2 start, out Vector2 end);
                         float distance = ((start + end) * 0.5f - cursor).sqrMagnitude;
                         if (distance < bestDistance)
                         {
@@ -130,11 +144,11 @@ namespace ProjectTA.Module.Build
             if (isTower)
             {
                 Publish(new RequestSpendGoldMessage(BuildRules.TowerCost));
-                Publish(new TowerBuiltMessage(territory, slot, TerritoryModel.GetCornerPosition(territory, slot)));
+                Publish(new TowerBuiltMessage(territory, slot, _layout.GetCornerPosition(territory, slot)));
                 return;
             }
 
-            TerritoryModel.GetWallSegment(territory, slot, out Vector2 from, out Vector2 to);
+            _layout.GetWallSegment(territory, slot, out Vector2 from, out Vector2 to);
             Publish(new RequestSpendGoldMessage(BuildRules.WallSegmentCost));
             Publish(new WallSegmentBuiltMessage(territory, slot, from, to));
         }
@@ -182,7 +196,7 @@ namespace ProjectTA.Module.Build
 
         private void MarkTower(int territoryIndex, int cornerIndex)
         {
-            if (territoryIndex >= 0 && territoryIndex < RingCount
+            if (territoryIndex >= 0 && territoryIndex < _unlocked.Length
                 && cornerIndex >= 0 && cornerIndex < TerritoryState.TowerCount)
             {
                 _towersBuilt[territoryIndex, cornerIndex] = true;
@@ -191,7 +205,7 @@ namespace ProjectTA.Module.Build
 
         private void MarkWall(int territoryIndex, int segmentIndex)
         {
-            if (territoryIndex >= 0 && territoryIndex < RingCount
+            if (territoryIndex >= 0 && territoryIndex < _unlocked.Length
                 && segmentIndex >= 0 && segmentIndex < TerritoryState.WallSegmentCount)
             {
                 _wallsBuilt[territoryIndex, segmentIndex] = true;
@@ -200,7 +214,12 @@ namespace ProjectTA.Module.Build
 
         private void ResetProgress()
         {
-            for (int t = 0; t < RingCount; t++)
+            int ringCount = _layout.RingCount;
+            _unlocked = new bool[ringCount];
+            _towersBuilt = new bool[ringCount, TerritoryState.TowerCount];
+            _wallsBuilt = new bool[ringCount, TerritoryState.WallSegmentCount];
+
+            for (int t = 0; t < ringCount; t++)
             {
                 _unlocked[t] = t == 0;
 

@@ -1,5 +1,7 @@
 using NUnit.Framework;
+using ProjectTA.Module.GameConstants;
 using ProjectTA.Module.Territory;
+using UnityEngine;
 
 namespace ProjectTA.Tests.EditMode
 {
@@ -120,6 +122,18 @@ namespace ProjectTA.Tests.EditMode
 
             _model.MarkWallSegmentBuilt(2, 5);
             Assert.That(_model.OutermostWallIndex, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void Layout_LeavesTheReferenceGapInTheMiddleOfEachSide()
+        {
+            var layout = new TerritoryLayout(new TerritoryConstants());
+
+            layout.GetWallSegment(0, 0, out Vector2 start, out Vector2 end);
+
+            Assert.That(layout.RingCount, Is.EqualTo(3));
+            Assert.That(start, Is.EqualTo(new Vector2(-400f, 300f)), "inner ring, top-left corner");
+            Assert.That(end, Is.EqualTo(new Vector2(-60f, 300f)), "stops one gap half short of the middle");
         }
     }
 }

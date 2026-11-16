@@ -1,0 +1,574 @@
+fileFormatVersion: 2
+guid: 7420ff88e9d29b04dbf65a92f016946e
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 2545133951123364359
+    second: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_0
+  - first:
+      213: -5523554024247646201
+    second: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_1
+  - first:
+      213: -2856164457456779644
+    second: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_2
+  - first:
+      213: 3524806732213560223
+    second: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_3
+  - first:
+      213: 8165866395174571872
+    second: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_4
+  - first:
+      213: 4979164889302024525
+    second: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_5
+  - first:
+      213: -8196744399741069545
+    second: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_6
+  - first:
+      213: -7718888100770259656
+    second: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_7
+  - first:
+      213: 8786122809948883819
+    second: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_8
+  - first:
+      213: 5572251358395405144
+    second: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_9
+  - first:
+      213: 7819665327303721744
+    second: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_10
+  - first:
+      213: 9041656945036091427
+    second: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_11
+  - first:
+      213: -5317997338663547526
+    second: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_12
+  - first:
+      213: 413136177050853914
+    second: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_13
+  - first:
+      213: -6042821586773239717
+    second: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_14
+  - first:
+      213: 6148106918414450617
+    second: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_15
+  - first:
+      213: 315298266556698893
+    second: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_16
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationMethod: 0
+  spriteTessellationDetail: -1
+  spriteGeometrySubdivision: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_0
+      rect:
+        serializedVersion: 2
+        x: 885
+        y: 288
+        width: 46
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 70a9e7608d1225320800000000000000
+      internalID: 2545133951123364359
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_1
+      rect:
+        serializedVersion: 2
+        x: 836
+        y: 237
+        width: 46
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7082a0741e46853b0800000000000000
+      internalID: -5523554024247646201
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_2
+      rect:
+        serializedVersion: 2
+        x: 885
+        y: 237
+        width: 46
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 48e313dfe8ddc58d0800000000000000
+      internalID: -2856164457456779644
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_3
+      rect:
+        serializedVersion: 2
+        x: 934
+        y: 237
+        width: 46
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f93ae773c01aae030800000000000000
+      internalID: 3524806732213560223
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_4
+      rect:
+        serializedVersion: 2
+        x: 480
+        y: 105
+        width: 857
+        height: 130
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 06f0ea7c83cf25170800000000000000
+      internalID: 8165866395174571872
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_5
+      rect:
+        serializedVersion: 2
+        x: 518
+        y: 82
+        width: 23
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d41c1f8061c891540800000000000000
+      internalID: 4979164889302024525
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_6
+      rect:
+        serializedVersion: 2
+        x: 609
+        y: 82
+        width: 22
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 717d2ca85605f3e80800000000000000
+      internalID: -8196744399741069545
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_7
+      rect:
+        serializedVersion: 2
+        x: 700
+        y: 82
+        width: 22
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 83d59943b2001e490800000000000000
+      internalID: -7718888100770259656
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_8
+      rect:
+        serializedVersion: 2
+        x: 790
+        y: 82
+        width: 22
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b6bc5ff05249ee970800000000000000
+      internalID: 8786122809948883819
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_9
+      rect:
+        serializedVersion: 2
+        x: 1004
+        y: 82
+        width: 22
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8539850661d945d40800000000000000
+      internalID: 5572251358395405144
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_10
+      rect:
+        serializedVersion: 2
+        x: 1095
+        y: 82
+        width: 22
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01380605f28058c60800000000000000
+      internalID: 7819665327303721744
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_11
+      rect:
+        serializedVersion: 2
+        x: 1187
+        y: 82
+        width: 22
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 320e1d5361b6a7d70800000000000000
+      internalID: 9041656945036091427
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_12
+      rect:
+        serializedVersion: 2
+        x: 1277
+        y: 82
+        width: 23
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a7d8c70b89da236b0800000000000000
+      internalID: -5317997338663547526
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_13
+      rect:
+        serializedVersion: 2
+        x: 845
+        y: 28
+        width: 45
+        height: 65
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a12aaf40a21cbb500800000000000000
+      internalID: 413136177050853914
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_14
+      rect:
+        serializedVersion: 2
+        x: 890
+        y: 28
+        width: 41
+        height: 65
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b58915778c5932ca0800000000000000
+      internalID: -6042821586773239717
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_15
+      rect:
+        serializedVersion: 2
+        x: 930
+        y: 28
+        width: 41
+        height: 63
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9bff6311ba6725550800000000000000
+      internalID: 6148106918414450617
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_16
+      rect:
+        serializedVersion: 2
+        x: 932
+        y: 86
+        width: 9
+        height: 7
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d0198685a1a206400800000000000000
+      internalID: 315298266556698893
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_0: 2545133951123364359
+      Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_1: -5523554024247646201
+      Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_10: 7819665327303721744
+      Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_11: 9041656945036091427
+      Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_12: -5317997338663547526
+      Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_13: 413136177050853914
+      Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_14: -6042821586773239717
+      Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_15: 6148106918414450617
+      Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_16: 315298266556698893
+      Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_2: -2856164457456779644
+      Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_3: 3524806732213560223
+      Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_4: 8165866395174571872
+      Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_5: 4979164889302024525
+      Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_6: -8196744399741069545
+      Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_7: -7718888100770259656
+      Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_8: 8786122809948883819
+      Contoh Pemain menggunakan Pedang dan bergerak menggunakan W_9: 5572251358395405144
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

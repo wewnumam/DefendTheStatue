@@ -85,7 +85,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
+  m_Sprite: {fileID: -4592860749798507518, guid: 2a364db437754ea4cb62711120487fc1, type: 3}
   m_Color: {r: 1, g: 0, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -108,6 +108,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7289c2040184284429fd0b2f5f8f8b99, type: 3}
   m_Name: 
   m_EditorClassIdentifier: ProjectTA::ProjectTA.Module.Monster.MonsterView
+  _body: {fileID: 3486399222556153383}
+  _renderer: {fileID: 1064850479049433409}
+  _hitbox: {fileID: 582552136076718910}
 --- !u!114 &582552136076718910
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -154,17 +157,17 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: -0.06, y: -0.13}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 1}
+    oldSize: {x: 1.89, y: 1.48}
     newSize: {x: 1, y: 1}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 1.65, y: 1.12}
   m_EdgeRadius: 0
 --- !u!50 &3486399222556153383
 Rigidbody2D:

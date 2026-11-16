@@ -58,3 +58,28 @@ MonoBehaviour:
     _bulletShootingRate: 0.25
     _bulletForce: 25
     _bulletDestroyDelay: 3
+  _monsterConstants:
+    _size: 1
+    _statueSize: 50
+    _speedPerSecond: 90
+    _baseHealth: 20
+    _healRadiusHealth: 40
+    _baseDamage: 10
+    _healRadiusDamage: 30
+    _baseGoldValue: 5
+    _healRadiusGoldValue: 15
+    _attackIntervalSeconds: 1
+    _stopPadding: 2
+    _attackReachPadding: 5
+  _territoryConstants:
+    _ringSizes:
+    - {x: 400, y: 300}
+    - {x: 800, y: 600}
+    - {x: 1600, y: 1200}
+    _gapHalfWidth: 60
+    _wallThickness: 8
+  _towerConstants:
+    _size: 32
+    _attackRange: 300
+    _attackRateFrames: 50
+    _damage: 15

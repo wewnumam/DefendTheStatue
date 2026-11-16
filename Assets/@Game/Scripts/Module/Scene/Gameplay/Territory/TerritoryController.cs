@@ -1,6 +1,8 @@
 using Agate.MVC.Base;
 using ProjectTA.Message;
+using ProjectTA.Module.GameConstants;
 using ProjectTA.Utility;
+using UnityEngine;
 
 namespace ProjectTA.Module.Territory
 {
@@ -10,10 +12,22 @@ namespace ProjectTA.Module.Territory
     /// </summary>
     public class TerritoryController : ObjectController<TerritoryController, TerritoryModel, TerritoryView>
     {
+        public void InitModel(IGameConstantsModel gameConstants)
+        {
+            if (gameConstants == null || gameConstants.GameConstants == null)
+            {
+                Debug.LogError("GAMECONSTANTS IS NULL");
+                return;
+            }
+
+            _model.SetLayout(new TerritoryLayout(gameConstants.GameConstants.TerritoryConstants));
+        }
+
         public override void SetView(TerritoryView view)
         {
             base.SetView(view);
             _model.Reset();
+            view.ClearWalls();
             view.Refresh(_model);
         }
 
@@ -31,7 +45,7 @@ namespace ProjectTA.Module.Territory
         public void OnWallSegmentBuilt(WallSegmentBuiltMessage message)
         {
             _model.MarkWallSegmentBuilt(message.TerritoryIndex, message.SegmentIndex);
-            _view.AddWall(message.Start, message.End);
+            _view.AddWall(message.Start, message.End, _model.Layout.Constants.WallThickness);
         }
 
         public void OnGameState(GameStateMessage message)
@@ -41,6 +55,7 @@ namespace ProjectTA.Module.Territory
                 _model.Reset();
                 if (_view != null)
                 {
+                    _view.ClearWalls();
                     _view.Refresh(_model);
                 }
             }

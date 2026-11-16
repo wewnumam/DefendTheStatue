@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Agate.MVC.Base;
 using ProjectTA.Message;
+using ProjectTA.Module.GameConstants;
 using ProjectTA.Utility;
 using UnityEngine;
 
@@ -15,6 +16,17 @@ namespace ProjectTA.Module.Tower
         private readonly Dictionary<int, Vector2> _monsterPositions = new Dictionary<int, Vector2>();
         private readonly List<int> _targets = new List<int>();
 
+        public void InitModel(IGameConstantsModel gameConstants)
+        {
+            if (gameConstants == null || gameConstants.GameConstants == null)
+            {
+                Debug.LogError("GAMECONSTANTS IS NULL");
+                return;
+            }
+
+            _model.SetTowerConstants(gameConstants.GameConstants.TowerConstants);
+        }
+
         public override void SetView(TowerView view)
         {
             base.SetView(view);
@@ -26,7 +38,7 @@ namespace ProjectTA.Module.Tower
         public void OnTowerBuilt(TowerBuiltMessage message)
         {
             _model.Add(message.Position, message.TerritoryIndex, message.CornerIndex);
-            _view.AddTower(message.Position);
+            _view.AddTower(message.Position, _model.Constants.Size);
         }
 
         public void OnMonsterSpawned(MonsterSpawnedMessage message)

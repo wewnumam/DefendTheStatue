@@ -58,12 +58,14 @@ namespace ProjectTA.Message
     /// <summary>Health, stamina, mana or gold moved: the HUD reads from here.</summary>
     public struct PlayerStatsChangedMessage
     {
-        public PlayerStatsChangedMessage(float health, float maxHealth, float stamina, float mana, int gold, int arrows)
+        public PlayerStatsChangedMessage(float health, float maxHealth, float stamina, float maxStamina, float mana, float maxMana, int gold, int arrows)
         {
             Health = health;
             MaxHealth = maxHealth;
             Stamina = stamina;
+            MaxStamina = maxStamina;
             Mana = mana;
+            MaxMana = maxMana;
             Gold = gold;
             Arrows = arrows;
         }
@@ -71,7 +73,9 @@ namespace ProjectTA.Message
         public float Health { get; }
         public float MaxHealth { get; }
         public float Stamina { get; }
+        public float MaxStamina { get; }
         public float Mana { get; }
+        public float MaxMana { get; }
         public int Gold { get; }
         public int Arrows { get; }
     }

@@ -32,6 +32,12 @@ namespace ProjectTA.Module.Monster
             _view.SetPosition(position);
         }
 
+        /// <summary>Pool-driven walk; the body does the moving, so the model can read it back later.</summary>
+        public void SetVelocity(Vector2 velocity)
+        {
+            _view.SetVelocity(velocity);
+        }
+
         public void Flash()
         {
             _view.PlayHitFlash();

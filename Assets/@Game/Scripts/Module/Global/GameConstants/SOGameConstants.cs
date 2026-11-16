@@ -18,10 +18,125 @@ namespace ProjectTA.Module.GameConstants
         [Header("Shooting Constants")]
         [SerializeField] private ShootingConstants _shootingConstants;
 
+        [Header("Monster Constants")]
+        [SerializeField] private MonsterConstants _monsterConstants;
+
+        [Header("Territory Constants")]
+        [SerializeField] private TerritoryConstants _territoryConstants;
+
+        [Header("Tower Constants")]
+        [SerializeField] private TowerConstants _towerConstants;
+
         public bool IsJoystickActive => _isJoystickActive;
         public PlayerConstants PlayerConstants => _playerConstants;
         public PlayerSkillConstants SkillConstants => _skillConstants;
         public ShootingConstants Shooting => _shootingConstants;
+        public MonsterConstants MonsterConstants => _monsterConstants;
+        public TerritoryConstants TerritoryConstants => _territoryConstants;
+        public TowerConstants TowerConstants => _towerConstants;
+    }
+
+    /// <summary>
+    /// Ring layout: sizes, the gap in the middle of every side, and how thick a built wall is. World
+    /// units, with the statue (50 across) at the origin.
+    /// </summary>
+    [Serializable]
+    public class TerritoryConstants
+    {
+        [SerializeField]
+        private Vector2[] _ringSizes =
+        {
+            new Vector2(800f, 600f),
+            new Vector2(1600f, 1200f),
+            new Vector2(3200f, 2400f)
+        };
+
+        /// <summary>Half of the reference game's 120-wide opening at the middle of each side.</summary>
+        [SerializeField] private float _gapHalfWidth = 60f;
+
+        /// <summary>How thick the wall bar and its collider are.</summary>
+        [SerializeField] private float _wallThickness = 8f;
+
+        public int RingCount => _ringSizes != null ? _ringSizes.Length : 0;
+        public float GapHalfWidth => _gapHalfWidth;
+        public float WallThickness => _wallThickness;
+
+        public Vector2 GetRingSize(int index)
+        {
+            if (_ringSizes == null || _ringSizes.Length == 0)
+            {
+                return Vector2.zero;
+            }
+
+            return index >= 0 && index < _ringSizes.Length ? _ringSizes[index] : _ringSizes[0];
+        }
+    }
+
+    /// <summary>One built tower: footprint, reach, cadence and damage. Reference: 32 / 300 / 50f / 15.</summary>
+    [Serializable]
+    public class TowerConstants
+    {
+        [SerializeField] private float _size = 32f;
+        [SerializeField] private float _attackRange = 300f;
+
+        /// <summary>Reference cadence, in 60 fps frames.</summary>
+        [SerializeField] private int _attackRateFrames = 50;
+
+        [SerializeField] private float _damage = 15f;
+
+        public float Size => _size;
+        public float AttackRange => _attackRange;
+        public int AttackRateFrames => _attackRateFrames;
+        public float Damage => _damage;
+    }
+
+    /// <summary>
+    /// Monster body, stats and bite cadence. Defaults are the reference game's spawnMonster values, so a
+    /// fresh asset behaves the same before anyone tunes it; world units are the statue's space, where the
+    /// statue itself is 50 across.
+    /// </summary>
+    [Serializable]
+    public class MonsterConstants
+    {
+        [Header("Body (world units)")]
+        [SerializeField] private float _size = 25f;
+        [SerializeField] private float _statueSize = 50f;
+
+        /// <summary>Reference: 1.5 units per frame at 60 fps.</summary>
+        [SerializeField] private float _speedPerSecond = 90f;
+
+        [Header("Stats")]
+        [SerializeField] private float _baseHealth = 20f;
+        [SerializeField] private float _healRadiusHealth = 40f;
+        [SerializeField] private float _baseDamage = 10f;
+        [SerializeField] private float _healRadiusDamage = 30f;
+        [SerializeField] private int _baseGoldValue = 5;
+        [SerializeField] private int _healRadiusGoldValue = 15;
+
+        [Header("Attack")]
+        /// <summary>Reference: attackCooldown 60 frames.</summary>
+        [SerializeField] private float _attackIntervalSeconds = 1f;
+        [SerializeField] private float _stopPadding = 2f;
+        [SerializeField] private float _attackReachPadding = 5f;
+
+        public float Size => _size;
+        public float StatueSize => _statueSize;
+        public float SpeedPerSecond => _speedPerSecond;
+
+        public float BaseHealth => _baseHealth;
+        public float HealRadiusHealth => _healRadiusHealth;
+        public float BaseDamage => _baseDamage;
+        public float HealRadiusDamage => _healRadiusDamage;
+        public int BaseGoldValue => _baseGoldValue;
+        public int HealRadiusGoldValue => _healRadiusGoldValue;
+
+        public float AttackIntervalSeconds => _attackIntervalSeconds;
+
+        /// <summary>(monster + statue) / 2 + padding: how close a monster walks before it bites.</summary>
+        public float StopDistance => (_size + _statueSize) * 0.5f + _stopPadding;
+
+        /// <summary>A bite lands a little before the monster is at rest, matching the reference's +5.</summary>
+        public float AttackReach => StopDistance + _attackReachPadding;
     }
 
     [Serializable]

@@ -18,6 +18,9 @@ using ProjectTA.Module.Statue;
 using ProjectTA.Module.Territory;
 using ProjectTA.Module.Build;
 using ProjectTA.Module.Tower;
+using ProjectTA.Module.PlayerSkill;
+using ProjectTA.Module.Hud;
+using ProjectTA.Module.SlowField;
 using System.Collections;
 using UnityEngine.SceneManagement;
 namespace ProjectTA.Scene.Gameplay
@@ -40,6 +43,9 @@ namespace ProjectTA.Scene.Gameplay
         private readonly TerritoryController _territory = new();
         private readonly BuildController _build = new();
         private readonly TowerController _tower = new();
+        private readonly PlayerSkillController _playerSkill = new();
+        private readonly HudController _hud = new();
+        private readonly SlowFieldController _slowField = new();
 
         protected override IController[] GetSceneDependencies()
         {
@@ -55,7 +61,10 @@ namespace ProjectTA.Scene.Gameplay
                 new StatueController(),
                 new TerritoryController(),
                 new BuildController(),
-                new TowerController()
+                new TowerController(),
+                new PlayerSkillController(),
+                new HudController(),
+                new SlowFieldController()
             };
         }
 
@@ -70,7 +79,10 @@ namespace ProjectTA.Scene.Gameplay
                 new StatueConnector(),
                 new TerritoryConnector(),
                 new BuildConnector(),
-                new TowerConnector()
+                new TowerConnector(),
+                new PlayerSkillConnector(),
+                new HudConnector(),
+                new SlowFieldConnector()
             };
         }
 
@@ -100,13 +112,24 @@ namespace ProjectTA.Scene.Gameplay
 
             _sword.SetView(_view.SwordView);
 
-            _gameFlow.SetView(_view.EnsureGameFlowView());
-            _monsterPool.SetView(_view.EnsureMonsterPoolView());
+            _gameFlow.InitModel(_gameConstants.Model);
+            _gameFlow.SetView(_view.GameFlowView);
+            _monsterPool.InitModel(_gameConstants.Model);
+            _monsterPool.SetView(_view.MonsterPoolView);
 
-            _territory.SetView(_view.EnsureTerritoryView());
-            _statue.SetView(_view.EnsureStatueView());
-            _build.SetView(_view.EnsureBuildView());
-            _tower.SetView(_view.EnsureTowerView());
+            _territory.InitModel(_gameConstants.Model);
+            _territory.SetView(_view.TerritoryView);
+            _statue.InitModel(_gameConstants.Model);
+            _statue.SetView(_view.StatueView);
+            _build.InitModel(_gameConstants.Model);
+            _build.SetView(_view.BuildView);
+            _tower.InitModel(_gameConstants.Model);
+            _tower.SetView(_view.TowerView);
+            _playerSkill.InitModel(_gameConstants.Model);
+            _playerSkill.SetView(_view.PlayerSkillView);
+            _playerSkill.SetPlayerTransform(_view.PlayerCharacterView.transform);
+            _hud.SetView(_view.HudView);
+            _slowField.SetView(_view.SlowFieldView);
 
             _input.SetReady();
 

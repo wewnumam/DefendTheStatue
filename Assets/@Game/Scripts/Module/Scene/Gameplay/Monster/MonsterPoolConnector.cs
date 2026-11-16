@@ -17,11 +17,18 @@ namespace ProjectTA.Module.Monster
             Subscribe<RequestDamageMonsterMessage>(_monsterPool.OnDamageMonster);
             Subscribe<RequestAreaDamageMessage>(_monsterPool.OnAreaDamage);
             Subscribe<RequestResetDashHitsMessage>(_monsterPool.OnResetDashHits);
+            Subscribe<SlowFieldAddedMessage>(_monsterPool.OnSlowFieldAdded);
             Subscribe<GameStateMessage>(_monsterPool.OnGameState);
         }
 
         protected override void Disconnect()
         {
+            Unsubscribe<RequestSpawnMonsterMessage>(_monsterPool.OnSpawnMonster);
+            Unsubscribe<RequestDamageMonsterMessage>(_monsterPool.OnDamageMonster);
+            Unsubscribe<RequestAreaDamageMessage>(_monsterPool.OnAreaDamage);
+            Unsubscribe<RequestResetDashHitsMessage>(_monsterPool.OnResetDashHits);
+            Unsubscribe<SlowFieldAddedMessage>(_monsterPool.OnSlowFieldAdded);
+            Unsubscribe<GameStateMessage>(_monsterPool.OnGameState);
         }
     }
 }

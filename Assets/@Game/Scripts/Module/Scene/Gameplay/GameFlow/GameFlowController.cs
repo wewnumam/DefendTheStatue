@@ -1,5 +1,6 @@
 using Agate.MVC.Base;
 using ProjectTA.Message;
+using ProjectTA.Module.GameConstants;
 using ProjectTA.Module.Territory;
 using UnityEngine;
 
@@ -14,9 +15,24 @@ namespace ProjectTA.Module.GameFlow
     /// </summary>
     public class GameFlowController : ObjectController<GameFlowController, GameFlowModel, GameFlowView>
     {
-        private readonly bool[] _ringHasWall = new bool[TerritoryModel.RingSizes.Length];
+        private bool[] _ringHasWall = System.Array.Empty<bool>();
+
+        /// <summary>Ring geometry, so the spawner measures the same rectangle the walls are built on.</summary>
+        private TerritoryLayout _layout = new TerritoryLayout(new TerritoryConstants());
 
         private int _outermostWallIndex = -1;
+
+        public void InitModel(IGameConstantsModel gameConstants)
+        {
+            if (gameConstants == null || gameConstants.GameConstants == null)
+            {
+                Debug.LogError("GAMECONSTANTS IS NULL");
+                return;
+            }
+
+            _layout = new TerritoryLayout(gameConstants.GameConstants.TerritoryConstants);
+            _ringHasWall = new bool[_layout.RingCount];
+        }
 
         public override void SetView(GameFlowView view)
         {
@@ -42,7 +58,7 @@ namespace ProjectTA.Module.GameFlow
 
             if (_outermostWallIndex >= 0)
             {
-                Vector2 ring = TerritoryModel.GetRingSize(_outermostWallIndex);
+                Vector2 ring = _layout.GetRingSize(_outermostWallIndex);
                 position = GameFlowModel.GetRingSpawnPosition(side, statue, ring.x, ring.y, Random.value);
             }
             else

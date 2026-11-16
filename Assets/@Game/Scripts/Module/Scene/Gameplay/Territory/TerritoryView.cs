@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Agate.MVC.Base;
-using ProjectTA.Utility;
 using UnityEngine;
 
 namespace ProjectTA.Module.Territory
@@ -13,13 +12,22 @@ namespace ProjectTA.Module.Territory
     {
         private const float BarThickness = 6f;
 
+        [SerializeField] private SpriteRenderer _barPrefab;
+        [SerializeField] private GameObject _wallPrefab;
+
         private readonly List<Transform> _rings = new List<Transform>();
+        private readonly List<GameObject> _walls = new List<GameObject>();
 
         public void Refresh(TerritoryModel model)
         {
             for (int i = 0; i < model.Count; i++)
             {
                 Transform ring = EnsureRing(i, model.Get(i));
+                if (ring == null)
+                {
+                    continue;
+                }
+
                 ring.gameObject.SetActive(true);
                 bool unlocked = model.Get(i).Unlocked;
                 foreach (SpriteRenderer bar in ring.GetComponentsInChildren<SpriteRenderer>())
@@ -30,8 +38,13 @@ namespace ProjectTA.Module.Territory
         }
 
         /// <summary>A wall was paid for: draw the segment between its two ends.</summary>
-        public void AddWall(Vector2 start, Vector2 end)
+        public void AddWall(Vector2 start, Vector2 end, float thickness)
         {
+            if (_wallPrefab == null)
+            {
+                return;
+            }
+
             Vector2 delta = end - start;
             float length = delta.magnitude;
             if (length <= 0.01f)
@@ -39,15 +52,26 @@ namespace ProjectTA.Module.Territory
                 return;
             }
 
-            var wall = new GameObject("Wall");
-            wall.transform.SetParent(transform, false);
+            GameObject wall = Instantiate(_wallPrefab, transform);
             wall.transform.localPosition = new Vector3((start.x + end.x) * 0.5f, (start.y + end.y) * 0.5f, 0f);
             wall.transform.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg);
-            wall.transform.localScale = new Vector3(length, 8f, 1f);
+            wall.transform.localScale = new Vector3(length, thickness, 1f);
 
-            var renderer = wall.AddComponent<SpriteRenderer>();
-            renderer.sprite = PlaceholderSprite.Square;
-            renderer.color = new Color(0.5f, 0.5f, 0.55f);
+            _walls.Add(wall);
+        }
+
+        /// <summary>Walls belong to one run; a restart must not leave the old ring standing.</summary>
+        public void ClearWalls()
+        {
+            for (int i = 0; i < _walls.Count; i++)
+            {
+                if (_walls[i] != null)
+                {
+                    Destroy(_walls[i]);
+                }
+            }
+
+            _walls.Clear();
         }
 
         private Transform EnsureRing(int index, TerritoryState territory)
@@ -55,6 +79,11 @@ namespace ProjectTA.Module.Territory
             if (index < _rings.Count && _rings[index] != null)
             {
                 return _rings[index];
+            }
+
+            if (_barPrefab == null)
+            {
+                return null;
             }
 
             var host = new GameObject($"Wilayah {index + 1}");
@@ -72,16 +101,12 @@ namespace ProjectTA.Module.Territory
             return host.transform;
         }
 
-        private static void CreateBar(Transform parent, string name, Vector2 offset, Vector2 size)
+        private void CreateBar(Transform parent, string name, Vector2 offset, Vector2 size)
         {
-            var bar = new GameObject(name);
-            bar.transform.SetParent(parent, false);
+            SpriteRenderer bar = Instantiate(_barPrefab, parent);
+            bar.name = name;
             bar.transform.localPosition = new Vector3(offset.x, offset.y, 0f);
             bar.transform.localScale = new Vector3(size.x, size.y, 1f);
-
-            var renderer = bar.AddComponent<SpriteRenderer>();
-            renderer.sprite = PlaceholderSprite.Square;
-            renderer.sortingOrder = -2;
         }
     }
 }

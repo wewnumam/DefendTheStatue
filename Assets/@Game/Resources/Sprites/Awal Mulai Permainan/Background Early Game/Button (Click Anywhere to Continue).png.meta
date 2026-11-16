@@ -1,0 +1,730 @@
+fileFormatVersion: 2
+guid: 5ffc588f0d86eb84b94a68fbf6b58381
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 8484834979492618194
+    second: Button (Click Anywhere to Continue)_0
+  - first:
+      213: -4386198294252198580
+    second: Button (Click Anywhere to Continue)_1
+  - first:
+      213: 3436174887265978822
+    second: Button (Click Anywhere to Continue)_2
+  - first:
+      213: 3997182515792112312
+    second: Button (Click Anywhere to Continue)_3
+  - first:
+      213: -3491997055681442607
+    second: Button (Click Anywhere to Continue)_4
+  - first:
+      213: -8116338437617845102
+    second: Button (Click Anywhere to Continue)_5
+  - first:
+      213: 1256772914855260372
+    second: Button (Click Anywhere to Continue)_6
+  - first:
+      213: 8134057958713350108
+    second: Button (Click Anywhere to Continue)_7
+  - first:
+      213: 4651310700306869208
+    second: Button (Click Anywhere to Continue)_8
+  - first:
+      213: -1395667333413195516
+    second: Button (Click Anywhere to Continue)_9
+  - first:
+      213: -4055837864085048979
+    second: Button (Click Anywhere to Continue)_10
+  - first:
+      213: -4691417153271731082
+    second: Button (Click Anywhere to Continue)_11
+  - first:
+      213: -9017307866948622017
+    second: Button (Click Anywhere to Continue)_12
+  - first:
+      213: -5223101785773422665
+    second: Button (Click Anywhere to Continue)_13
+  - first:
+      213: -6347980354311344979
+    second: Button (Click Anywhere to Continue)_14
+  - first:
+      213: 2594910678119018214
+    second: Button (Click Anywhere to Continue)_15
+  - first:
+      213: -1132547905876625143
+    second: Button (Click Anywhere to Continue)_16
+  - first:
+      213: 2878865539300530262
+    second: Button (Click Anywhere to Continue)_17
+  - first:
+      213: -8160975132227012453
+    second: Button (Click Anywhere to Continue)_18
+  - first:
+      213: -6698066131878554489
+    second: Button (Click Anywhere to Continue)_19
+  - first:
+      213: -6306996540634650709
+    second: Button (Click Anywhere to Continue)_20
+  - first:
+      213: -8707163516286583540
+    second: Button (Click Anywhere to Continue)_21
+  - first:
+      213: 894305696212204958
+    second: Button (Click Anywhere to Continue)_22
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationMethod: 0
+  spriteTessellationDetail: -1
+  spriteGeometrySubdivision: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Button (Click Anywhere to Continue)_0
+      rect:
+        serializedVersion: 2
+        x: 692
+        y: 417
+        width: 16
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2df5772957030c570800000000000000
+      internalID: 8484834979492618194
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Button (Click Anywhere to Continue)_1
+      rect:
+        serializedVersion: 2
+        x: 714
+        y: 418
+        width: 14
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c456ca4f3e71123c0800000000000000
+      internalID: -4386198294252198580
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Button (Click Anywhere to Continue)_2
+      rect:
+        serializedVersion: 2
+        x: 735
+        y: 418
+        width: 14
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c94b95badebfaf20800000000000000
+      internalID: 3436174887265978822
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Button (Click Anywhere to Continue)_3
+      rect:
+        serializedVersion: 2
+        x: 755
+        y: 417
+        width: 16
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8bae034f158d87730800000000000000
+      internalID: 3997182515792112312
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Button (Click Anywhere to Continue)_4
+      rect:
+        serializedVersion: 2
+        x: 777
+        y: 418
+        width: 15
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1dcc563ed2fe98fc0800000000000000
+      internalID: -3491997055681442607
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Button (Click Anywhere to Continue)_5
+      rect:
+        serializedVersion: 2
+        x: 817
+        y: 418
+        width: 17
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 29c70f47139fc5f80800000000000000
+      internalID: -8116338437617845102
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Button (Click Anywhere to Continue)_6
+      rect:
+        serializedVersion: 2
+        x: 839
+        y: 418
+        width: 14
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4d0b741be44f07110800000000000000
+      internalID: 1256772914855260372
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Button (Click Anywhere to Continue)_7
+      rect:
+        serializedVersion: 2
+        x: 859
+        y: 418
+        width: 17
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cd75c8b0e9af1e070800000000000000
+      internalID: 8134057958713350108
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Button (Click Anywhere to Continue)_8
+      rect:
+        serializedVersion: 2
+        x: 880
+        y: 418
+        width: 17
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8dba3cf2076cc8040800000000000000
+      internalID: 4651310700306869208
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Button (Click Anywhere to Continue)_9
+      rect:
+        serializedVersion: 2
+        x: 902
+        y: 418
+        width: 15
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4013a4f64f791ace0800000000000000
+      internalID: -1395667333413195516
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Button (Click Anywhere to Continue)_10
+      rect:
+        serializedVersion: 2
+        x: 923
+        y: 418
+        width: 15
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d61b1ac83f4c6b7c0800000000000000
+      internalID: -4055837864085048979
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Button (Click Anywhere to Continue)_11
+      rect:
+        serializedVersion: 2
+        x: 944
+        y: 418
+        width: 16
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 67c601e84fcb4eeb0800000000000000
+      internalID: -4691417153271731082
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Button (Click Anywhere to Continue)_12
+      rect:
+        serializedVersion: 2
+        x: 965
+        y: 418
+        width: 15
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f39213055461cd280800000000000000
+      internalID: -9017307866948622017
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Button (Click Anywhere to Continue)_13
+      rect:
+        serializedVersion: 2
+        x: 1006
+        y: 418
+        width: 16
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7b744495990d387b0800000000000000
+      internalID: -5223101785773422665
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Button (Click Anywhere to Continue)_14
+      rect:
+        serializedVersion: 2
+        x: 1027
+        y: 417
+        width: 16
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dac2d14308177e7a0800000000000000
+      internalID: -6347980354311344979
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Button (Click Anywhere to Continue)_15
+      rect:
+        serializedVersion: 2
+        x: 1069
+        y: 417
+        width: 16
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6eee6296389f20420800000000000000
+      internalID: 2594910678119018214
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Button (Click Anywhere to Continue)_16
+      rect:
+        serializedVersion: 2
+        x: 1090
+        y: 417
+        width: 16
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9097c1b1ea16840f0800000000000000
+      internalID: -1132547905876625143
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Button (Click Anywhere to Continue)_17
+      rect:
+        serializedVersion: 2
+        x: 1112
+        y: 418
+        width: 14
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6581f1284f8c3f720800000000000000
+      internalID: 2878865539300530262
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Button (Click Anywhere to Continue)_18
+      rect:
+        serializedVersion: 2
+        x: 1132
+        y: 418
+        width: 16
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b98ffce1b546ebe80800000000000000
+      internalID: -8160975132227012453
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Button (Click Anywhere to Continue)_19
+      rect:
+        serializedVersion: 2
+        x: 1154
+        y: 418
+        width: 14
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 784dd474750bb03a0800000000000000
+      internalID: -6698066131878554489
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Button (Click Anywhere to Continue)_20
+      rect:
+        serializedVersion: 2
+        x: 1175
+        y: 418
+        width: 14
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba7aadbef0c0978a0800000000000000
+      internalID: -6306996540634650709
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Button (Click Anywhere to Continue)_21
+      rect:
+        serializedVersion: 2
+        x: 1196
+        y: 417
+        width: 14
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c0d3f7a1ae0f92780800000000000000
+      internalID: -8707163516286583540
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Button (Click Anywhere to Continue)_22
+      rect:
+        serializedVersion: 2
+        x: 1217
+        y: 418
+        width: 15
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e9d365fda46396c00800000000000000
+      internalID: 894305696212204958
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Button (Click Anywhere to Continue)_0: 8484834979492618194
+      Button (Click Anywhere to Continue)_1: -4386198294252198580
+      Button (Click Anywhere to Continue)_10: -4055837864085048979
+      Button (Click Anywhere to Continue)_11: -4691417153271731082
+      Button (Click Anywhere to Continue)_12: -9017307866948622017
+      Button (Click Anywhere to Continue)_13: -5223101785773422665
+      Button (Click Anywhere to Continue)_14: -6347980354311344979
+      Button (Click Anywhere to Continue)_15: 2594910678119018214
+      Button (Click Anywhere to Continue)_16: -1132547905876625143
+      Button (Click Anywhere to Continue)_17: 2878865539300530262
+      Button (Click Anywhere to Continue)_18: -8160975132227012453
+      Button (Click Anywhere to Continue)_19: -6698066131878554489
+      Button (Click Anywhere to Continue)_2: 3436174887265978822
+      Button (Click Anywhere to Continue)_20: -6306996540634650709
+      Button (Click Anywhere to Continue)_21: -8707163516286583540
+      Button (Click Anywhere to Continue)_22: 894305696212204958
+      Button (Click Anywhere to Continue)_3: 3997182515792112312
+      Button (Click Anywhere to Continue)_4: -3491997055681442607
+      Button (Click Anywhere to Continue)_5: -8116338437617845102
+      Button (Click Anywhere to Continue)_6: 1256772914855260372
+      Button (Click Anywhere to Continue)_7: 8134057958713350108
+      Button (Click Anywhere to Continue)_8: 4651310700306869208
+      Button (Click Anywhere to Continue)_9: -1395667333413195516
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

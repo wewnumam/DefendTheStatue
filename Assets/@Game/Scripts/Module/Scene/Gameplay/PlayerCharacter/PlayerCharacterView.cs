@@ -1,6 +1,6 @@
 using Agate.MVC.Base;
 using UnityEngine;
-using ProjectTA.Utility;
+using UnityEngine.Events;
 using ProjectTA.Module.GameConstants;
 using UnityEngine.InputSystem;
 using NaughtyAttributes;
@@ -12,6 +12,13 @@ namespace ProjectTA.Module.PlayerCharacter
         [SerializeField] private Rigidbody2D _rb;
         [SerializeField] private Camera _mainCamera;
 
+        [Header("Art")]
+        [SerializeField] private SpriteRenderer _visual;
+        [SerializeField] private Sprite _swordIdleSprite;
+        [SerializeField] private Sprite _bowIdleSprite;
+
+        private UnityAction<float> _onTick;
+
         private Vector2 _direction;
         private Vector2 _aimScreenPosition;
         private Vector2 _smoothedAim;
@@ -21,14 +28,29 @@ namespace ProjectTA.Module.PlayerCharacter
 
         private void Awake()
         {
-            if (_rb == null)
+            if (_visual != null && _swordIdleSprite != null)
             {
-                _rb = GetComponent<Rigidbody2D>();
+                _visual.sprite = _swordIdleSprite;
+            }
+        }
+
+        public void SetTickCallback(UnityAction<float> onTick)
+        {
+            _onTick = onTick;
+        }
+
+        /// <summary>Scroll up arms the bow, so the pawn shows its bow idle — the same rule Sword/BulletPool follow.</summary>
+        public void SetWeaponVisual(float scrollY)
+        {
+            if (_visual == null || scrollY == 0f)
+            {
+                return;
             }
 
-            if (_mainCamera == null)
+            Sprite sprite = scrollY > 0f ? _bowIdleSprite : _swordIdleSprite;
+            if (sprite != null)
             {
-                _mainCamera = Camera.main;
+                _visual.sprite = sprite;
             }
         }
 
@@ -41,6 +63,7 @@ namespace ProjectTA.Module.PlayerCharacter
 
             MovePlayerCharacter();
             HandleRotation();
+            _onTick?.Invoke(Time.fixedDeltaTime);
         }
 
         private void MovePlayerCharacter()

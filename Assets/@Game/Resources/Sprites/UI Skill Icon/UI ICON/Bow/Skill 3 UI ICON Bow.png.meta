@@ -1,0 +1,444 @@
+fileFormatVersion: 2
+guid: b9abec97808f99049b980659d75e7648
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 5471186600109039706
+    second: Skill 3 UI ICON Bow_0
+  - first:
+      213: 7767185573118239986
+    second: Skill 3 UI ICON Bow_1
+  - first:
+      213: 8743382802530159535
+    second: Skill 3 UI ICON Bow_2
+  - first:
+      213: -2008237247606030979
+    second: Skill 3 UI ICON Bow_3
+  - first:
+      213: 5060330285138694525
+    second: Skill 3 UI ICON Bow_4
+  - first:
+      213: 796400349827888745
+    second: Skill 3 UI ICON Bow_5
+  - first:
+      213: -7289814755982985802
+    second: Skill 3 UI ICON Bow_6
+  - first:
+      213: -6831455468598525997
+    second: Skill 3 UI ICON Bow_7
+  - first:
+      213: 3874184307206885682
+    second: Skill 3 UI ICON Bow_8
+  - first:
+      213: -6528986567528345214
+    second: Skill 3 UI ICON Bow_9
+  - first:
+      213: 4434085736721850548
+    second: Skill 3 UI ICON Bow_10
+  - first:
+      213: 374056614702431677
+    second: Skill 3 UI ICON Bow_11
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationMethod: 0
+  spriteTessellationDetail: -1
+  spriteGeometrySubdivision: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Skill 3 UI ICON Bow_0
+      rect:
+        serializedVersion: 2
+        x: 921
+        y: 565
+        width: 41
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a506067a93f8deb40800000000000000
+      internalID: 5471186600109039706
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Skill 3 UI ICON Bow_1
+      rect:
+        serializedVersion: 2
+        x: 974
+        y: 594
+        width: 44
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f4604e50269acb60800000000000000
+      internalID: 7767185573118239986
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Skill 3 UI ICON Bow_2
+      rect:
+        serializedVersion: 2
+        x: 1020
+        y: 593
+        width: 44
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fabc110a55cb65970800000000000000
+      internalID: 8743382802530159535
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Skill 3 UI ICON Bow_3
+      rect:
+        serializedVersion: 2
+        x: 1075
+        y: 561
+        width: 40
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d7dfbb70dde4124e0800000000000000
+      internalID: -2008237247606030979
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Skill 3 UI ICON Bow_4
+      rect:
+        serializedVersion: 2
+        x: 1113
+        y: 448
+        width: 224
+        height: 159
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d71d7d36597e93640800000000000000
+      internalID: 5060330285138694525
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Skill 3 UI ICON Bow_5
+      rect:
+        serializedVersion: 2
+        x: 904
+        y: 511
+        width: 18
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 966fc7e06e16d0b00800000000000000
+      internalID: 796400349827888745
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Skill 3 UI ICON Bow_6
+      rect:
+        serializedVersion: 2
+        x: 957
+        y: 523
+        width: 52
+        height: 52
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6b5bb3f3a1065da90800000000000000
+      internalID: -7289814755982985802
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Skill 3 UI ICON Bow_7
+      rect:
+        serializedVersion: 2
+        x: 1025
+        y: 523
+        width: 52
+        height: 52
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3dff847227bc131a0800000000000000
+      internalID: -6831455468598525997
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Skill 3 UI ICON Bow_8
+      rect:
+        serializedVersion: 2
+        x: 914
+        y: 462
+        width: 38
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2319571e91ed3c530800000000000000
+      internalID: 3874184307206885682
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Skill 3 UI ICON Bow_9
+      rect:
+        serializedVersion: 2
+        x: 962
+        y: 443
+        width: 44
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2811d231f416465a0800000000000000
+      internalID: -6528986567528345214
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Skill 3 UI ICON Bow_10
+      rect:
+        serializedVersion: 2
+        x: 1022
+        y: 443
+        width: 44
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b0aee81c79098d30800000000000000
+      internalID: 4434085736721850548
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Skill 3 UI ICON Bow_11
+      rect:
+        serializedVersion: 2
+        x: 1077
+        y: 459
+        width: 40
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dbd393d528ae03500800000000000000
+      internalID: 374056614702431677
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Skill 3 UI ICON Bow_0: 5471186600109039706
+      Skill 3 UI ICON Bow_1: 7767185573118239986
+      Skill 3 UI ICON Bow_10: 4434085736721850548
+      Skill 3 UI ICON Bow_11: 374056614702431677
+      Skill 3 UI ICON Bow_2: 8743382802530159535
+      Skill 3 UI ICON Bow_3: -2008237247606030979
+      Skill 3 UI ICON Bow_4: 5060330285138694525
+      Skill 3 UI ICON Bow_5: 796400349827888745
+      Skill 3 UI ICON Bow_6: -7289814755982985802
+      Skill 3 UI ICON Bow_7: -6831455468598525997
+      Skill 3 UI ICON Bow_8: 3874184307206885682
+      Skill 3 UI ICON Bow_9: -6528986567528345214
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

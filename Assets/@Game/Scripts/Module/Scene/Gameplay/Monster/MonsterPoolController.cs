@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using Agate.MVC.Base;
 using ProjectTA.Message;
+using ProjectTA.Module.GameConstants;
+using ProjectTA.Module.SlowField;
 using UnityEngine;
 
 namespace ProjectTA.Module.Monster
@@ -23,13 +25,34 @@ namespace ProjectTA.Module.Monster
         private readonly List<int> _hitIds = new List<int>();
         private readonly List<int> _removedIds = new List<int>();
 
+        /// <summary>
+        /// The pool's own copy of the slow zones. A field is one small struct and both copies are fed by
+        /// the same message, so this stays in sync without a controller-to-controller reference.
+        /// </summary>
+        private readonly SlowFieldModel _slowFields = new SlowFieldModel();
+
+        public void InitModel(IGameConstantsModel gameConstants)
+        {
+            if (gameConstants == null || gameConstants.GameConstants == null)
+            {
+                Debug.LogError("GAMECONSTANTS IS NULL");
+                return;
+            }
+
+            _model.SetMonsterConstants(gameConstants.GameConstants.MonsterConstants);
+        }
+
         public override void SetView(MonsterPoolView view)
         {
             base.SetView(view);
 
             for (int i = 0; i < PoolSize; i++)
             {
-                _pool.Add(CreateMonsterObject());
+                MonsterController controller = CreateMonsterObject();
+                if (controller != null)
+                {
+                    _pool.Add(controller);
+                }
             }
 
             view.SetCallback(OnTick);
@@ -37,20 +60,17 @@ namespace ProjectTA.Module.Monster
 
         private MonsterController CreateMonsterObject()
         {
-            MonsterView monsterView;
-            if (_view.MonsterPrefab != null)
+            if (_view.MonsterPrefab == null)
             {
-                GameObject instance = GameObject.Instantiate(_view.MonsterPrefab, _view.transform);
-                monsterView = instance.GetComponent<MonsterView>();
-            }
-            else
-            {
-                monsterView = _view.CreatePlaceholder();
+                Debug.LogError("[MonsterPool] No monster prefab wired on MonsterPoolView.");
+                return null;
             }
 
-            // Both paths end up the same size. The reference monster is 25 units, so a prefab authored at
-            // 1 unit would be a speck beside the 96-radius statue. Colliders scale with the transform.
-            monsterView.transform.localScale = Vector3.one * MonsterState.Size;
+            GameObject instance = GameObject.Instantiate(_view.MonsterPrefab, _view.transform);
+            MonsterView monsterView = instance.GetComponent<MonsterView>();
+            // The reference monster is 25 units, so a prefab authored at 1 unit would be a speck beside
+            // the 96-radius statue. Colliders scale with the transform.
+            monsterView.transform.localScale = Vector3.one * _model.Constants.Size;
 
             var controller = new MonsterController();
             InjectDependencies(controller);
@@ -65,16 +85,35 @@ namespace ProjectTA.Module.Monster
         {
             // The statue sits on the world origin — every territory ring is centred there — so the walk
             // target is a constant rather than a lookup through another module.
-            _model.Advance(deltaTime, Vector2.zero, MonsterState.StatueStopDistance);
+            float now = Time.time;
+            _slowFields.RemoveExpired(now);
 
             for (int i = 0; i < _model.Count; i++)
             {
                 MonsterState monster = _model.Monsters[i];
-                if (_bound.TryGetValue(monster.Id, out MonsterController controller))
+                if (!_bound.TryGetValue(monster.Id, out MonsterController controller))
                 {
-                    controller.Sync(monster.Position);
+                    continue;
                 }
+
+                // Physics owns the body, so the model reads back where it actually stands before it
+                // decides the next step: walls and neighbours have had their say by now.
+                _model.SetPosition(monster.Id, controller.ViewRef.Position);
+                float multiplier = _slowFields.GetSpeedMultiplierAt(monster.Position, now);
+                controller.SetVelocity(_model.GetVelocity(monster, Vector2.zero, _model.Constants.StopDistance, multiplier));
             }
+
+            // Bites are reported, not applied: statue health is the statue module's to change.
+            float damage = _model.CollectStatueDamage(deltaTime, Vector2.zero);
+            if (damage > 0f)
+            {
+                Publish(new RequestStatueDamageMessage(damage));
+            }
+        }
+
+        public void OnSlowFieldAdded(SlowFieldAddedMessage message)
+        {
+            _slowFields.Add(message.Center, message.Radius, message.SlowFactor, Time.time, message.DurationSeconds);
         }
 
         public void OnSpawnMonster(RequestSpawnMonsterMessage message)
@@ -177,6 +216,7 @@ namespace ProjectTA.Module.Monster
 
             _model.Clear();
             _bound.Clear();
+            _slowFields.Clear();
 
             for (int i = 0; i < _pool.Count; i++)
             {

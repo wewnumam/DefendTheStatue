@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Agate.MVC.Base;
+using ProjectTA.Module.GameConstants;
 using UnityEngine;
 
 namespace ProjectTA.Module.Territory
@@ -82,78 +83,27 @@ namespace ProjectTA.Module.Territory
     }
 
     /// <summary>
-    /// The three concentric territories. Sizes, names and the level 2 / level 4 unlock points are
-    /// the reference game's values.
+    /// The three concentric territories. Sizes come from <see cref="TerritoryConstants"/>; this class only
+    /// keeps which ring is unlocked and what has been built on it.
     /// </summary>
     public class TerritoryModel : BaseModel
     {
-        /// <summary>Ring extents, index-aligned with the territories. Static so the spawn ring can be measured without holding a controller.</summary>
-        public static readonly Vector2[] RingSizes =
-        {
-            new Vector2(800f, 600f),
-            new Vector2(1600f, 1200f),
-            new Vector2(3200f, 2400f)
-        };
-
-        public static Vector2 GetRingSize(int index)
-        {
-            return index >= 0 && index < RingSizes.Length ? RingSizes[index] : RingSizes[0];
-        }
-
-        /// <summary>Territory corners, clockwise from the top-left. Ring is centred on the world origin.</summary>
-        public static Vector2 GetCornerPosition(int territoryIndex, int cornerIndex)
-        {
-            Vector2 size = GetRingSize(territoryIndex);
-            float halfWidth = size.x * 0.5f;
-            float halfHeight = size.y * 0.5f;
-            switch (((cornerIndex % TerritoryState.TowerCount) + TerritoryState.TowerCount) % TerritoryState.TowerCount)
-            {
-                case 0:
-                    return new Vector2(-halfWidth, halfHeight);
-                case 1:
-                    return new Vector2(halfWidth, halfHeight);
-                case 2:
-                    return new Vector2(halfWidth, -halfHeight);
-                default:
-                    return new Vector2(-halfWidth, -halfHeight);
-            }
-        }
-
-        /// <summary>
-        /// Wall segments run clockwise from the top-left corner, two per side: 0 top-left half,
-        /// 1 top-right half, 2 right-top half, 3 right-bottom half, and so on.
-        /// </summary>
-        public static void GetWallSegment(int territoryIndex, int segmentIndex, out Vector2 start, out Vector2 end)
-        {
-            Vector2 size = GetRingSize(territoryIndex);
-            Vector2[] corners =
-            {
-                new Vector2(-size.x * 0.5f, size.y * 0.5f),
-                new Vector2(size.x * 0.5f, size.y * 0.5f),
-                new Vector2(size.x * 0.5f, -size.y * 0.5f),
-                new Vector2(-size.x * 0.5f, -size.y * 0.5f)
-            };
-
-            int segment = ((segmentIndex % TerritoryState.WallSegmentCount) + TerritoryState.WallSegmentCount)
-                % TerritoryState.WallSegmentCount;
-            int corner = segment / 2;
-            Vector2 from = corners[corner];
-            Vector2 to = corners[(corner + 1) % TerritoryState.TowerCount];
-            Vector2 middle = (from + to) * 0.5f;
-
-            if (segment % 2 == 0)
-            {
-                start = from;
-                end = middle;
-            }
-            else
-            {
-                start = middle;
-                end = to;
-            }
-        }
-
         private readonly List<TerritoryState> _territories = new List<TerritoryState>();
+
+        /// <summary>Defaults match the reference asset, so unit tests need no asset.</summary>
+        private TerritoryLayout _layout = new TerritoryLayout(new TerritoryConstants());
+
+        public TerritoryLayout Layout => _layout;
+
+        public void SetLayout(TerritoryLayout layout)
+        {
+            if (layout != null)
+            {
+                _layout = layout;
+            }
+
+            SetDataAsDirty();
+        }
 
         public IReadOnlyList<TerritoryState> Territories => _territories;
         public int Count => _territories.Count;
@@ -161,15 +111,24 @@ namespace ProjectTA.Module.Territory
         public void Reset()
         {
             _territories.Clear();
-            _territories.Add(new TerritoryState(0, "Wilayah 1", RingSizes[0].x, RingSizes[0].y, true));
-            _territories.Add(new TerritoryState(1, "Wilayah 2", RingSizes[1].x, RingSizes[1].y, false));
-            _territories.Add(new TerritoryState(2, "Wilayah 3", RingSizes[2].x, RingSizes[2].y, false));
+
+            for (int i = 0; i < _layout.RingCount; i++)
+            {
+                Vector2 size = _layout.GetRingSize(i);
+                _territories.Add(new TerritoryState(i, $"Wilayah {i + 1}", size.x, size.y, i == 0));
+            }
+
             SetDataAsDirty();
         }
 
         public TerritoryState Get(int index)
         {
             return index >= 0 && index < _territories.Count ? _territories[index] : null;
+        }
+
+        public Vector2 GetRingSize(int index)
+        {
+            return _layout.GetRingSize(index);
         }
 
         public void Unlock(int index)

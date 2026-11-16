@@ -1,6 +1,7 @@
 using Agate.MVC.Base;
 using ProjectTA.Message;
 using ProjectTA.Module.Build;
+using ProjectTA.Module.GameConstants;
 using ProjectTA.Module.Territory;
 using ProjectTA.Utility;
 using UnityEngine;
@@ -13,9 +14,20 @@ namespace ProjectTA.Module.Statue
     /// </summary>
     public class StatueController : ObjectController<StatueController, StatueModel, StatueView>
     {
-        private readonly int[] _wallSegmentsBuilt = new int[TerritoryModel.RingSizes.Length];
+        private int[] _wallSegmentsBuilt = System.Array.Empty<int>();
         private int _gold;
         private int _monstersKilled;
+
+        public void InitModel(IGameConstantsModel gameConstants)
+        {
+            if (gameConstants == null || gameConstants.GameConstants == null)
+            {
+                Debug.LogError("GAMECONSTANTS IS NULL");
+                return;
+            }
+
+            _wallSegmentsBuilt = new int[gameConstants.GameConstants.TerritoryConstants.RingCount];
+        }
 
         public override void SetView(StatueView view)
         {
