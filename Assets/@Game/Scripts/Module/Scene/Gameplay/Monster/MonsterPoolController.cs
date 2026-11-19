@@ -24,6 +24,7 @@ namespace ProjectTA.Module.Monster
         private readonly Dictionary<int, MonsterController> _bound = new Dictionary<int, MonsterController>();
         private readonly List<int> _hitIds = new List<int>();
         private readonly List<int> _removedIds = new List<int>();
+        private readonly List<int> _attackedIds = new List<int>();
 
         /// <summary>
         /// The pool's own copy of the slow zones. A field is one small struct and both copies are fed by
@@ -101,13 +102,23 @@ namespace ProjectTA.Module.Monster
                 _model.SetPosition(monster.Id, controller.ViewRef.Position);
                 float multiplier = _slowFields.GetSpeedMultiplierAt(monster.Position, now);
                 controller.SetVelocity(_model.GetVelocity(monster, Vector2.zero, _model.Constants.StopDistance, multiplier));
+                controller.TickAnimation(deltaTime);
             }
 
             // Bites are reported, not applied: statue health is the statue module's to change.
-            float damage = _model.CollectStatueDamage(deltaTime, Vector2.zero);
+            _attackedIds.Clear();
+            float damage = _model.CollectStatueDamage(deltaTime, Vector2.zero, _attackedIds);
             if (damage > 0f)
             {
                 Publish(new RequestStatueDamageMessage(damage));
+            }
+
+            for (int i = 0; i < _attackedIds.Count; i++)
+            {
+                if (_bound.TryGetValue(_attackedIds[i], out MonsterController biter))
+                {
+                    biter.PlayAttack();
+                }
             }
         }
 
@@ -170,6 +181,11 @@ namespace ProjectTA.Module.Monster
 
             if (!monster.IsDead)
             {
+                if (_bound.TryGetValue(monsterId, out MonsterController hurt))
+                {
+                    hurt.PlayHit();
+                }
+
                 Publish(new MonsterDamagedMessage(monsterId, monster.Health, hitPosition));
                 return;
             }

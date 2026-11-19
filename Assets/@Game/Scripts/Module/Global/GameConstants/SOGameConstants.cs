@@ -119,6 +119,13 @@ namespace ProjectTA.Module.GameConstants
         [SerializeField] private float _stopPadding = 2f;
         [SerializeField] private float _attackReachPadding = 5f;
 
+        [Header("Spawn")]
+        /// <summary>Gap between the outermost built wall ring and where a monster appears.</summary>
+        [SerializeField] private float _spawnOffset = 100f;
+
+        /// <summary>Distance from the camera centre when no wall exists yet.</summary>
+        [SerializeField] private float _cameraSpawnDistance = 500f;
+
         public float Size => _size;
         public float StatueSize => _statueSize;
         public float SpeedPerSecond => _speedPerSecond;
@@ -131,6 +138,8 @@ namespace ProjectTA.Module.GameConstants
         public int HealRadiusGoldValue => _healRadiusGoldValue;
 
         public float AttackIntervalSeconds => _attackIntervalSeconds;
+        public float SpawnOffset => _spawnOffset;
+        public float CameraSpawnDistance => _cameraSpawnDistance;
 
         /// <summary>(monster + statue) / 2 + padding: how close a monster walks before it bites.</summary>
         public float StopDistance => (_size + _statueSize) * 0.5f + _stopPadding;

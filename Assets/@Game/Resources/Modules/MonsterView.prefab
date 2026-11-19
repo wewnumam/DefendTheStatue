@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 582552136076718910}
   - component: {fileID: 1431558671854484842}
   - component: {fileID: 3486399222556153383}
+  - component: {fileID: 4117201508266571114}
   m_Layer: 0
   m_Name: MonsterView
   m_TagString: Monster
@@ -83,10 +84,10 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 10
   m_MaskInteraction: 0
   m_Sprite: {fileID: -4592860749798507518, guid: 2a364db437754ea4cb62711120487fc1, type: 3}
-  m_Color: {r: 1, g: 0, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -111,6 +112,11 @@ MonoBehaviour:
   _body: {fileID: 3486399222556153383}
   _renderer: {fileID: 1064850479049433409}
   _hitbox: {fileID: 582552136076718910}
+  _animator: {fileID: 4117201508266571114}
+  _idleState: Deasor_Idle
+  _attackState: Deasor_Attack
+  _hitState: Deasor_GetHit
+  _minOneShotSeconds: 0.15
 --- !u!114 &582552136076718910
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -196,3 +202,25 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!95 &4117201508266571114
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8530630064156416430}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: fc0c8bac35d0b5a49bc60d0b9f2b8ef6, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

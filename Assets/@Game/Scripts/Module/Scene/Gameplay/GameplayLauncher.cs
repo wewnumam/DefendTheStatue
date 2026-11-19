@@ -13,6 +13,7 @@ using ProjectTA.Module.SaveSystem;
 using ProjectTA.Module.BulletPool;
 using ProjectTA.Module.Sword;
 using ProjectTA.Module.GameFlow;
+using ProjectTA.Module.GameStateUi;
 using ProjectTA.Module.Monster;
 using ProjectTA.Module.Statue;
 using ProjectTA.Module.Territory;
@@ -46,6 +47,7 @@ namespace ProjectTA.Scene.Gameplay
         private readonly PlayerSkillController _playerSkill = new();
         private readonly HudController _hud = new();
         private readonly SlowFieldController _slowField = new();
+        private readonly GameStateUiController _gameStateUi = new();
 
         protected override IController[] GetSceneDependencies()
         {
@@ -64,7 +66,8 @@ namespace ProjectTA.Scene.Gameplay
                 new TowerController(),
                 new PlayerSkillController(),
                 new HudController(),
-                new SlowFieldController()
+                new SlowFieldController(),
+                new GameStateUiController()
             };
         }
 
@@ -82,7 +85,8 @@ namespace ProjectTA.Scene.Gameplay
                 new TowerConnector(),
                 new PlayerSkillConnector(),
                 new HudConnector(),
-                new SlowFieldConnector()
+                new SlowFieldConnector(),
+                new GameStateUiConnector()
             };
         }
 
@@ -130,6 +134,7 @@ namespace ProjectTA.Scene.Gameplay
             _playerSkill.SetPlayerTransform(_view.PlayerCharacterView.transform);
             _hud.SetView(_view.HudView);
             _slowField.SetView(_view.SlowFieldView);
+            _gameStateUi.SetView(_view.GameStateUiView);
 
             _input.SetReady();
 

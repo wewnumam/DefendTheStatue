@@ -169,9 +169,10 @@ namespace ProjectTA.Module.Monster
 
         /// <summary>
         /// Ticks every monster's attack clock and returns the total damage the ones in reach dealt this
-        /// tick. The reference bites once a second for the monster's rolled damage.
+        /// tick. The reference bites once a second for the monster's rolled damage. Appends the ids that
+        /// bit to <paramref name="attackedIds"/>, so the pool can play their attack pose.
         /// </summary>
-        public float CollectStatueDamage(float deltaSeconds, Vector2 statuePosition)
+        public float CollectStatueDamage(float deltaSeconds, Vector2 statuePosition, System.Collections.Generic.List<int> attackedIds = null)
         {
             float total = 0f;
 
@@ -188,6 +189,7 @@ namespace ProjectTA.Module.Monster
                 float distance = (monster.Position - statuePosition).magnitude;
                 if (monster.TryAttack(distance))
                 {
+                    attackedIds?.Add(monster.Id);
                     total += monster.Damage;
                 }
             }

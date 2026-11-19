@@ -43,5 +43,22 @@ namespace ProjectTA.Module.Monster
             _view.PlayHitFlash();
             _view.EndHitFlash();
         }
+
+        /// <summary>Bite pose; the pool tick polls it back to idle.</summary>
+        public void PlayAttack()
+        {
+            _view.PlayAttackAnimation();
+        }
+
+        /// <summary>Damage pose; the pool tick polls it back to idle.</summary>
+        public void PlayHit()
+        {
+            _view.PlayHitAnimation();
+        }
+
+        public void TickAnimation(float deltaTime)
+        {
+            _view.TickAnimation(deltaTime);
+        }
     }
 }

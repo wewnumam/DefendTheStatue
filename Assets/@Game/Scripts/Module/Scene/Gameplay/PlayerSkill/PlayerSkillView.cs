@@ -14,18 +14,39 @@ namespace ProjectTA.Module.PlayerSkill
     /// </summary>
     public class PlayerSkillView : BaseView
     {
+        [Header("Upgrade interface")]
+        [SerializeField] private Transform _statue;
+        [SerializeField] private float _upgradeRadius = 120f;
+
         private UnityAction<float> _onTick;
         private UnityAction<EnumManager.SkillSlot> _onCastRequested;
+        private UnityAction _onUpgradePanelToggleRequested;
 
-        public void SetCallbacks(UnityAction<float> onTick, UnityAction<EnumManager.SkillSlot> onCastRequested)
+        public void SetCallbacks(
+            UnityAction<float> onTick,
+            UnityAction<EnumManager.SkillSlot> onCastRequested,
+            UnityAction onUpgradePanelToggleRequested)
         {
             _onTick = onTick;
             _onCastRequested = onCastRequested;
+            _onUpgradePanelToggleRequested = onUpgradePanelToggleRequested;
         }
 
         public void SetTickCallback(UnityAction<float> onTick)
         {
             _onTick = onTick;
+        }
+
+        /// <summary>The upgrade interface is statue-local: the player has to stand inside the radius.</summary>
+        public bool IsWithinUpgradeRadius(Vector3 worldPosition)
+        {
+            if (_statue == null)
+            {
+                return false;
+            }
+
+            return ((Vector2)_statue.position - (Vector2)worldPosition).sqrMagnitude
+                <= _upgradeRadius * _upgradeRadius;
         }
 
         private void Update()
@@ -34,6 +55,18 @@ namespace ProjectTA.Module.PlayerSkill
 
             Keyboard keyboard = Keyboard.current;
             if (keyboard == null)
+            {
+                return;
+            }
+
+            // Tab is a second way into the skill upgrade interface; E over the god statue is the first.
+            if (keyboard.tabKey.wasPressedThisFrame && Time.timeScale > 0f)
+            {
+                _onUpgradePanelToggleRequested?.Invoke();
+            }
+
+            // Casting must not fire while the world is frozen.
+            if (Time.timeScale <= 0f)
             {
                 return;
             }

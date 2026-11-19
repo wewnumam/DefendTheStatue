@@ -22,6 +22,9 @@ namespace ProjectTA.Module.PlayerSkill
 
         private readonly bool[] _effectActive = new bool[WeaponCount * SlotCount];
 
+        /// <summary>Owned here so E over the god statue and Tab cannot disagree about the panel state.</summary>
+        private bool _isUpgradePanelOpen;
+
         private Transform _player;
 
         /// <summary>The sword time slash is anchored on the caster, so the launcher hands the transform over.</summary>
@@ -55,7 +58,34 @@ namespace ProjectTA.Module.PlayerSkill
             _weapon = EnumManager.WeaponKind.Sword;
             _mana = 0f;
             ClearEffects();
-            view.SetCallbacks(OnTick, OnCastRequested);
+            view.SetCallbacks(OnTick, OnCastRequested, OnUpgradePanelToggleRequested);
+        }
+
+        /// <summary>
+        /// The panel's open flag lives here, so every key that toggles it stays in sync. Opening needs
+        /// the player inside the statue radius; closing always works, so walking away never traps the
+        /// player in a panel he cannot dismiss.
+        /// </summary>
+        private void OnUpgradePanelToggleRequested()
+        {
+            if (!_isUpgradePanelOpen && !IsWithinUpgradeRadius())
+            {
+                return;
+            }
+
+            _isUpgradePanelOpen = !_isUpgradePanelOpen;
+            Publish(new SkillUpgradePanelToggledMessage(_isUpgradePanelOpen));
+        }
+
+        private bool IsWithinUpgradeRadius()
+        {
+            return _view != null && _player != null
+                && _view.IsWithinUpgradeRadius(_player.position);
+        }
+
+        public void OnRequestToggleSkillUpgradePanel(RequestToggleSkillUpgradePanelMessage message)
+        {
+            OnUpgradePanelToggleRequested();
         }
 
         private void OnTick(float deltaTime)
@@ -83,6 +113,9 @@ namespace ProjectTA.Module.PlayerSkill
                 _effectActive[Index(_weapon, slot)] = true;
                 Publish(new SkillEffectToggledMessage(slot, _weapon, true));
             }
+
+            // Berserker and clone mode change speed, damage and fire rate the moment they start.
+            PublishMultipliers();
 
             // Sword 2 is the time slash: one slow disc on the caster. Its expiry drives the model timer.
             if (_weapon == EnumManager.WeaponKind.Sword
@@ -120,8 +153,26 @@ namespace ProjectTA.Module.PlayerSkill
 
                     _effectActive[index] = false;
                     Publish(new SkillEffectToggledMessage(skillSlot, weaponKind, false));
+                    PublishMultipliers();
                 }
             }
+        }
+
+        /// <summary>
+        /// The reference polls getSpeedMult / getDmgMult / getAtkCdMult every frame; here they are
+        /// pushed when they can change, so the player, sword and bullet pool never hold the skill model.
+        /// </summary>
+        private void PublishMultipliers()
+        {
+            if (_model.SkillConstants == null)
+            {
+                return;
+            }
+
+            Publish(new SkillMultipliersMessage(
+                _model.GetSpeedMultiplier(_weapon),
+                _model.GetDamageMultiplier(_weapon),
+                _model.GetAttackCooldownMultiplier(_weapon)));
         }
 
         public void OnRequestCastSkill(RequestCastSkillMessage message)
@@ -129,8 +180,18 @@ namespace ProjectTA.Module.PlayerSkill
             OnCastRequested(message.Slot);
         }
 
+        /// <summary>
+        /// Weapon switches are resolved here and only here: clone mode pins the bow, so a refused scroll
+        /// must not reach the sword, the bullet pool or the pawn's art. Everyone else follows
+        /// WeaponSwitchedMessage.
+        /// </summary>
         public void OnSwitchWeapon(SwitchWeaponMessage message)
         {
+            if (_model.IsWeaponLocked(EnumManager.WeaponKind.Bow))
+            {
+                return;
+            }
+
             if (message.Scroll > 0f)
             {
                 _weapon = EnumManager.WeaponKind.Bow;
@@ -139,6 +200,15 @@ namespace ProjectTA.Module.PlayerSkill
             {
                 _weapon = EnumManager.WeaponKind.Sword;
             }
+            else
+            {
+                return;
+            }
+
+            Publish(new WeaponSwitchedMessage(_weapon));
+
+            // Which weapon is in hand decides whether a running skill3 means x3 melee or x2 fire rate.
+            PublishMultipliers();
         }
 
         public void OnPlayerStatsChanged(PlayerStatsChangedMessage message)
@@ -161,6 +231,10 @@ namespace ProjectTA.Module.PlayerSkill
 
             _model.Reset();
             ClearEffects();
+            _weapon = EnumManager.WeaponKind.Sword;
+            Publish(new WeaponSwitchedMessage(_weapon));
+            PublishMultipliers();
+            _isUpgradePanelOpen = false;
         }
 
         private void ClearEffects()

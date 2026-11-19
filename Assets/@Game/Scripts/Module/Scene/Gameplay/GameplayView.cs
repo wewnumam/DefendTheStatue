@@ -2,6 +2,7 @@ using Agate.MVC.Base;
 using ProjectTA.Module.Build;
 using ProjectTA.Module.BulletPool;
 using ProjectTA.Module.GameFlow;
+using ProjectTA.Module.GameStateUi;
 using ProjectTA.Module.Hud;
 using ProjectTA.Module.Monster;
 using ProjectTA.Module.PlayerCharacter;
@@ -48,6 +49,8 @@ namespace ProjectTA.Scene.Gameplay
         public HudView HudView { get; private set; }
         [field: SerializeField]
         public SlowFieldView SlowFieldView { get; private set; }
+        [field: SerializeField]
+        public GameStateUiView GameStateUiView { get; private set; }
 
         private UnityAction _onMainMenu;
 

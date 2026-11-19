@@ -32,7 +32,7 @@ namespace ProjectTA.Module.Bullet
         /// </summary>
         private void OnHitMonster(int monsterId, Vector2 hitPosition)
         {
-            Publish(new RequestDamageMonsterMessage(monsterId, PlayerWeaponModel.ArrowDamage, hitPosition));
+            Publish(new RequestDamageMonsterMessage(monsterId, _view.Damage, hitPosition));
         }
     }
 }

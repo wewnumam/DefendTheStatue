@@ -79,9 +79,18 @@ namespace ProjectTA.Module.Build
             }
         }
 
-        /// <summary>Builds whichever legal slot, tower or wall, sits closest to the cursor.</summary>
+        /// <summary>
+        /// Builds whichever legal slot, tower or wall, sits closest to the cursor. Over the god statue
+        /// the same key opens the skill upgrade interface instead — nothing is built there.
+        /// </summary>
         private void OnBuild(Vector2 cursor)
         {
+            if (_view.IsOverStatue(cursor))
+            {
+                Publish(new RequestToggleSkillUpgradePanelMessage());
+                return;
+            }
+
             int territory = -1;
             int slot = -1;
             bool isTower = false;

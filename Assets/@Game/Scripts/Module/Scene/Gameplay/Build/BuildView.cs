@@ -14,8 +14,27 @@ namespace ProjectTA.Module.Build
     {
         [SerializeField] private Camera _camera;
 
+        [Header("God statue")]
+        [SerializeField] private Transform _godStatue;
+        [SerializeField] private float _statuePickRadius = 150f;
+
         private UnityAction<Vector2> _onBuild;
         private UnityAction _onUpgrade;
+
+        /// <summary>
+        /// E is one context key: over the god statue it opens the skill upgrade interface, anywhere
+        /// else it builds. The radius is authored here because the art scale is not a game constant.
+        /// </summary>
+        public bool IsOverStatue(Vector2 worldPosition)
+        {
+            if (_godStatue == null)
+            {
+                return false;
+            }
+
+            return ((Vector2)_godStatue.position - worldPosition).sqrMagnitude
+                <= _statuePickRadius * _statuePickRadius;
+        }
 
         public Vector2 CursorPosition
         {
@@ -39,7 +58,8 @@ namespace ProjectTA.Module.Build
 
         private void Update()
         {
-            if (Keyboard.current == null)
+            // Build and upgrade land instantly, so they must not fire while the world is frozen.
+            if (Time.timeScale <= 0f || Keyboard.current == null)
             {
                 return;
             }

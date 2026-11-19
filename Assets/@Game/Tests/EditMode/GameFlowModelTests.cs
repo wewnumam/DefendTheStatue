@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using ProjectTA.Module.GameConstants;
 using ProjectTA.Module.GameFlow;
 using ProjectTA.Utility;
 using UnityEngine;
@@ -109,10 +110,11 @@ namespace ProjectTA.Tests.EditMode
             const float Height = 600f;
 
             // random01 = 0.5 puts the spawn on the ring's centre line.
-            Vector2 bottom = GameFlowModel.GetRingSpawnPosition(0, statue, Width, Height, 0.5f);
-            Vector2 right = GameFlowModel.GetRingSpawnPosition(1, statue, Width, Height, 0.5f);
-            Vector2 top = GameFlowModel.GetRingSpawnPosition(2, statue, Width, Height, 0.5f);
-            Vector2 left = GameFlowModel.GetRingSpawnPosition(3, statue, Width, Height, 0.5f);
+            float offset = new MonsterConstants().SpawnOffset;
+            Vector2 bottom = GameFlowModel.GetRingSpawnPosition(0, statue, Width, Height, 0.5f, offset);
+            Vector2 right = GameFlowModel.GetRingSpawnPosition(1, statue, Width, Height, 0.5f, offset);
+            Vector2 top = GameFlowModel.GetRingSpawnPosition(2, statue, Width, Height, 0.5f, offset);
+            Vector2 left = GameFlowModel.GetRingSpawnPosition(3, statue, Width, Height, 0.5f, offset);
 
             Assert.That(bottom, Is.EqualTo(new Vector2(100f, -350f)));
             Assert.That(right, Is.EqualTo(new Vector2(600f, 50f)));
@@ -125,8 +127,9 @@ namespace ProjectTA.Tests.EditMode
         {
             Vector2 statue = Vector2.zero;
 
-            Vector2 atZero = GameFlowModel.GetRingSpawnPosition(0, statue, 800f, 600f, 0f);
-            Vector2 atOne = GameFlowModel.GetRingSpawnPosition(0, statue, 800f, 600f, 1f);
+            float offset = new MonsterConstants().SpawnOffset;
+            Vector2 atZero = GameFlowModel.GetRingSpawnPosition(0, statue, 800f, 600f, 0f, offset);
+            Vector2 atOne = GameFlowModel.GetRingSpawnPosition(0, statue, 800f, 600f, 1f, offset);
 
             Assert.That(atZero.x, Is.EqualTo(-350f).Within(1e-5f), "half of (800 - 100)");
             Assert.That(atOne.x, Is.EqualTo(350f).Within(1e-5f));
@@ -136,11 +139,12 @@ namespace ProjectTA.Tests.EditMode
         public void CameraSpawns_AreFiveHundredAwayFromTheCameraCentre()
         {
             Vector2 camera = new Vector2(10f, 20f);
+            float distance = new MonsterConstants().CameraSpawnDistance;
 
-            Assert.That(GameFlowModel.GetCameraSpawnPosition(0, camera, 400f, 300f, 0.5f), Is.EqualTo(new Vector2(10f, -480f)));
-            Assert.That(GameFlowModel.GetCameraSpawnPosition(1, camera, 400f, 300f, 0.5f), Is.EqualTo(new Vector2(510f, 20f)));
-            Assert.That(GameFlowModel.GetCameraSpawnPosition(2, camera, 400f, 300f, 0.5f), Is.EqualTo(new Vector2(10f, 520f)));
-            Assert.That(GameFlowModel.GetCameraSpawnPosition(3, camera, 400f, 300f, 0.5f), Is.EqualTo(new Vector2(-490f, 20f)));
+            Assert.That(GameFlowModel.GetCameraSpawnPosition(0, camera, 400f, 300f, 0.5f, distance), Is.EqualTo(new Vector2(10f, -480f)));
+            Assert.That(GameFlowModel.GetCameraSpawnPosition(1, camera, 400f, 300f, 0.5f, distance), Is.EqualTo(new Vector2(510f, 20f)));
+            Assert.That(GameFlowModel.GetCameraSpawnPosition(2, camera, 400f, 300f, 0.5f, distance), Is.EqualTo(new Vector2(10f, 520f)));
+            Assert.That(GameFlowModel.GetCameraSpawnPosition(3, camera, 400f, 300f, 0.5f, distance), Is.EqualTo(new Vector2(-490f, 20f)));
         }
 
         [Test]

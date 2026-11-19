@@ -13,7 +13,15 @@ namespace ProjectTA.Module.BulletPool
         public ShootingConstants ShootingConstants { get; private set; } = new();
 
         private float _currentCountdown = 0;
+        private float _rateMultiplier = 1f;
         private readonly List<GameObject> _bulletPool = new List<GameObject>();
+
+        /// <summary>Clone mode's x0.5 attack cooldown; also the reference's getAtkCdMult() for the bow.</summary>
+        public void SetRateMultiplier(float multiplier)
+        {
+            _rateMultiplier = multiplier > 0f ? multiplier : 1f;
+            SetDataAsDirty();
+        }
 
         public void SetIsPlaying(bool isPlaying)
         {
@@ -58,7 +66,7 @@ namespace ProjectTA.Module.BulletPool
 
         public void ResetCountdown()
         {
-            _currentCountdown = ShootingConstants.BulletShootingRate;
+            _currentCountdown = ShootingConstants.BulletShootingRate * _rateMultiplier;
         }
 
         public void DecreaseCountdown(float amount)

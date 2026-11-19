@@ -14,6 +14,7 @@ namespace ProjectTA.Module.PlayerSkill
             Subscribe<PlayerStatsChangedMessage>(_playerSkill.OnPlayerStatsChanged);
             Subscribe<StatueUpgradedMessage>(_playerSkill.OnStatueUpgraded);
             Subscribe<GameStateMessage>(_playerSkill.OnGameState);
+            Subscribe<RequestToggleSkillUpgradePanelMessage>(_playerSkill.OnRequestToggleSkillUpgradePanel);
         }
 
         protected override void Disconnect()
@@ -23,6 +24,7 @@ namespace ProjectTA.Module.PlayerSkill
             Unsubscribe<PlayerStatsChangedMessage>(_playerSkill.OnPlayerStatsChanged);
             Unsubscribe<StatueUpgradedMessage>(_playerSkill.OnStatueUpgraded);
             Unsubscribe<GameStateMessage>(_playerSkill.OnGameState);
+            Unsubscribe<RequestToggleSkillUpgradePanelMessage>(_playerSkill.OnRequestToggleSkillUpgradePanel);
         }
     }
 }

@@ -49,5 +49,25 @@ namespace ProjectTA.Module.Sword
                 _hitbox.enabled = isActive && _isEquipped;
             }
         }
+
+        /// <summary>
+        /// The sword's reach is the collider authored on this child, not a radius in code. The collider
+        /// is only enabled for the duration of the swing, so read it right after enabling it.
+        /// </summary>
+        public bool TryGetHitArea(out Vector2 center, out float radius)
+        {
+            center = Vector2.zero;
+            radius = 0f;
+
+            if (_hitbox == null)
+            {
+                return false;
+            }
+
+            Bounds bounds = _hitbox.bounds;
+            center = bounds.center;
+            radius = Mathf.Max(bounds.extents.x, bounds.extents.y);
+            return radius > 0.01f;
+        }
     }
 }

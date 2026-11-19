@@ -17,8 +17,8 @@ MonoBehaviour:
     _enemyLayer:
       serializedVersion: 2
       m_Bits: 0
-    _movementSpeed: 5
-    _rotationSpeed: 5
+    _movementSpeed: 10
+    _rotationSpeed: 10
     _rayDistance: 100
     _fixedYPosition: 1
     _knockbackForce: 100
@@ -60,8 +60,8 @@ MonoBehaviour:
     _bulletDestroyDelay: 3
   _monsterConstants:
     _size: 1
-    _statueSize: 50
-    _speedPerSecond: 90
+    _statueSize: 3
+    _speedPerSecond: 5
     _baseHealth: 20
     _healRadiusHealth: 40
     _baseDamage: 10
@@ -69,17 +69,19 @@ MonoBehaviour:
     _baseGoldValue: 5
     _healRadiusGoldValue: 15
     _attackIntervalSeconds: 1
-    _stopPadding: 2
-    _attackReachPadding: 5
+    _stopPadding: 1
+    _attackReachPadding: 2
+    _spawnOffset: 10
+    _cameraSpawnDistance: 15
   _territoryConstants:
     _ringSizes:
+    - {x: 100, y: 75}
+    - {x: 200, y: 150}
     - {x: 400, y: 300}
-    - {x: 800, y: 600}
-    - {x: 1600, y: 1200}
-    _gapHalfWidth: 60
-    _wallThickness: 8
+    _gapHalfWidth: 15
+    _wallThickness: 4
   _towerConstants:
-    _size: 32
-    _attackRange: 300
-    _attackRateFrames: 50
+    _size: 16
+    _attackRange: 150
+    _attackRateFrames: 25
     _damage: 15

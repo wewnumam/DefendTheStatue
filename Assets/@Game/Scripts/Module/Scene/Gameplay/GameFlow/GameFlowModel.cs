@@ -93,38 +93,35 @@ namespace ProjectTA.Module.GameFlow
             SetDataAsDirty();
         }
 
-        public const float SpawnOffset = 100f;
-        public const float CameraSpawnDistance = 500f;
-
         /// <summary>
         /// Reference spawnMonster: monsters appear just outside the outermost built wall ring, on a
-        /// random side, spread along that side but never within 50 of a corner.
+        /// random side, spread along that side but never within <paramref name="spawnOffset"/> of a corner.
         /// </summary>
-        public static Vector2 GetRingSpawnPosition(int side, Vector2 statuePosition, float ringWidth, float ringHeight, float random01)
+        public static Vector2 GetRingSpawnPosition(int side, Vector2 statuePosition, float ringWidth, float ringHeight, float random01, float spawnOffset)
         {
             float halfW = ringWidth * 0.5f;
             float halfH = ringHeight * 0.5f;
-            float spreadX = (random01 - 0.5f) * (ringWidth - SpawnOffset);
-            float spreadY = (random01 - 0.5f) * (ringHeight - SpawnOffset);
+            float spreadX = (random01 - 0.5f) * (ringWidth - spawnOffset);
+            float spreadY = (random01 - 0.5f) * (ringHeight - spawnOffset);
 
             switch (side)
             {
                 case 0:
-                    return new Vector2(statuePosition.x + spreadX, statuePosition.y - halfH - SpawnOffset);
+                    return new Vector2(statuePosition.x + spreadX, statuePosition.y - halfH - spawnOffset);
                 case 1:
-                    return new Vector2(statuePosition.x + halfW + SpawnOffset, statuePosition.y + spreadY);
+                    return new Vector2(statuePosition.x + halfW + spawnOffset, statuePosition.y + spreadY);
                 case 2:
-                    return new Vector2(statuePosition.x + spreadX, statuePosition.y + halfH + SpawnOffset);
+                    return new Vector2(statuePosition.x + spreadX, statuePosition.y + halfH + spawnOffset);
                 default:
-                    return new Vector2(statuePosition.x - halfW - SpawnOffset, statuePosition.y + spreadY);
+                    return new Vector2(statuePosition.x - halfW - spawnOffset, statuePosition.y + spreadY);
             }
         }
 
         /// <summary>
-        /// Fallback used before any wall exists: spawn on a camera edge, 500 away from the camera
-        /// centre. viewWidth / viewHeight are the half extents of what the camera sees.
+        /// Fallback used before any wall exists: spawn on a camera edge, <paramref name="cameraSpawnDistance"/>
+        /// away from the camera centre. viewWidth / viewHeight are the half extents of what the camera sees.
         /// </summary>
-        public static Vector2 GetCameraSpawnPosition(int side, Vector2 cameraPosition, float halfViewWidth, float halfViewHeight, float random01)
+        public static Vector2 GetCameraSpawnPosition(int side, Vector2 cameraPosition, float halfViewWidth, float halfViewHeight, float random01, float cameraSpawnDistance)
         {
             float spreadX = (random01 - 0.5f) * (halfViewWidth * 2f);
             float spreadY = (random01 - 0.5f) * (halfViewHeight * 2f);
@@ -132,13 +129,13 @@ namespace ProjectTA.Module.GameFlow
             switch (side)
             {
                 case 0:
-                    return new Vector2(cameraPosition.x + spreadX, cameraPosition.y - CameraSpawnDistance);
+                    return new Vector2(cameraPosition.x + spreadX, cameraPosition.y - cameraSpawnDistance);
                 case 1:
-                    return new Vector2(cameraPosition.x + CameraSpawnDistance, cameraPosition.y + spreadY);
+                    return new Vector2(cameraPosition.x + cameraSpawnDistance, cameraPosition.y + spreadY);
                 case 2:
-                    return new Vector2(cameraPosition.x + spreadX, cameraPosition.y + CameraSpawnDistance);
+                    return new Vector2(cameraPosition.x + spreadX, cameraPosition.y + cameraSpawnDistance);
                 default:
-                    return new Vector2(cameraPosition.x - CameraSpawnDistance, cameraPosition.y + spreadY);
+                    return new Vector2(cameraPosition.x - cameraSpawnDistance, cameraPosition.y + spreadY);
             }
         }
     }

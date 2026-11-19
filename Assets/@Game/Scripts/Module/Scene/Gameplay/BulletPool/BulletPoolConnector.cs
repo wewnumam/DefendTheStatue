@@ -12,8 +12,12 @@ namespace ProjectTA.Module.BulletPool
             Subscribe<PlayerCharacterShootStartMessage>(_bulletPool.OnShootStart);
             Subscribe<PlayerCharacterShootEndMessage>(_bulletPool.OnShootEnd);
             Subscribe<DespawnBulletMessage>(_bulletPool.OnDespawnBullet);
-            Subscribe<SwitchWeaponMessage>(_bulletPool.OnSwitchWeapon);
+            Subscribe<WeaponSwitchedMessage>(_bulletPool.OnWeaponSwitched);
             Subscribe<GameStateMessage>(_bulletPool.OnGameState);
+            Subscribe<SkillMultipliersMessage>(_bulletPool.OnSkillMultipliers);
+            Subscribe<PlayerStatsChangedMessage>(_bulletPool.OnPlayerStatsChanged);
+            Subscribe<SkillEffectToggledMessage>(_bulletPool.OnSkillEffectToggled);
+            Subscribe<RequestHeavyShotMessage>(_bulletPool.OnRequestHeavyShot);
         }
 
         protected override void Disconnect()
@@ -21,8 +25,12 @@ namespace ProjectTA.Module.BulletPool
             Unsubscribe<PlayerCharacterShootStartMessage>(_bulletPool.OnShootStart);
             Unsubscribe<PlayerCharacterShootEndMessage>(_bulletPool.OnShootEnd);
             Unsubscribe<DespawnBulletMessage>(_bulletPool.OnDespawnBullet);
-            Unsubscribe<SwitchWeaponMessage>(_bulletPool.OnSwitchWeapon);
+            Unsubscribe<WeaponSwitchedMessage>(_bulletPool.OnWeaponSwitched);
             Unsubscribe<GameStateMessage>(_bulletPool.OnGameState);
+            Unsubscribe<SkillMultipliersMessage>(_bulletPool.OnSkillMultipliers);
+            Unsubscribe<PlayerStatsChangedMessage>(_bulletPool.OnPlayerStatsChanged);
+            Unsubscribe<SkillEffectToggledMessage>(_bulletPool.OnSkillEffectToggled);
+            Unsubscribe<RequestHeavyShotMessage>(_bulletPool.OnRequestHeavyShot);
         }
     }
 }

@@ -9,16 +9,20 @@ namespace ProjectTA.Module.Sword
 
         protected override void Connect()
         {
-            Subscribe<SwitchWeaponMessage>(_sword.OnSwitchWeapon);
+            Subscribe<WeaponSwitchedMessage>(_sword.OnWeaponSwitched);
             Subscribe<PlayerCharacterShootStartMessage>(_sword.OnShootStart);
             Subscribe<PlayerCharacterShootEndMessage>(_sword.OnShootEnd);
+            Subscribe<SkillMultipliersMessage>(_sword.OnSkillMultipliers);
+            Subscribe<PlayerStatsChangedMessage>(_sword.OnPlayerStatsChanged);
         }
 
         protected override void Disconnect()
         {
-            Unsubscribe<SwitchWeaponMessage>(_sword.OnSwitchWeapon);
+            Unsubscribe<WeaponSwitchedMessage>(_sword.OnWeaponSwitched);
             Unsubscribe<PlayerCharacterShootStartMessage>(_sword.OnShootStart);
             Unsubscribe<PlayerCharacterShootEndMessage>(_sword.OnShootEnd);
+            Unsubscribe<SkillMultipliersMessage>(_sword.OnSkillMultipliers);
+            Unsubscribe<PlayerStatsChangedMessage>(_sword.OnPlayerStatsChanged);
         }
     }
 }

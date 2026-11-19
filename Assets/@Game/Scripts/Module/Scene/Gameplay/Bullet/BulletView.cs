@@ -18,6 +18,12 @@ namespace ProjectTA.Module.Bullet
         public Rigidbody2D Rb => _rb;
         public float LaunchForce => _launchForce;
 
+        /// <summary>
+        /// Damage this arrow carries. The pool rewrites it on every spawn, so clone mode and berserker
+        /// scale the hit without the bullet module asking anyone about skills.
+        /// </summary>
+        public float Damage { get; set; } = ProjectTA.Module.PlayerWeapon.PlayerWeaponModel.ArrowDamage;
+
         public void SetCallback(UnityAction onCollideWithCollider)
         {
             _onCollideWithCollider = onCollideWithCollider;
@@ -46,9 +52,10 @@ namespace ProjectTA.Module.Bullet
         {
             _hasHitTarget = false;
             Rb.isKinematic = false;
-            // 2D: the aim axis is transform.right, transform.forward is the depth (Z) axis
+            // The rig faces down (local -Y), and the spawn point's rotation carries the aim, so the
+            // arrow flies along its own -up. transform.right would send it sideways.
             Rb.linearVelocity = Vector2.zero;
-            Rb.AddForce(transform.right * LaunchForce, ForceMode2D.Impulse);
+            Rb.AddForce((Vector2)(-transform.up) * LaunchForce, ForceMode2D.Impulse);
 
             // Lifetime: a bullet that never hits anything must still return to the pool
             Invoke(nameof(OnCollideWithCollider), _destroyDelay);

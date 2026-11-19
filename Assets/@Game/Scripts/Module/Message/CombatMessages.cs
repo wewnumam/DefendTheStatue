@@ -55,6 +55,45 @@ namespace ProjectTA.Message
         public int Amount { get; }
     }
 
+    /// <summary>One bow shot's ammo. The pool asks before it fires; the player module owns the count.</summary>
+    public struct RequestSpendArrowsMessage
+    {
+        public RequestSpendArrowsMessage(int count)
+        {
+            Count = count;
+        }
+
+        public int Count { get; }
+    }
+
+    /// <summary>
+    /// Stamina bill for a swing, an arrow or a charged shot. The player module owns the pool, so every
+    /// other module posts here the way it does for gold and arrows.
+    /// </summary>
+    public struct RequestSpendStaminaMessage
+    {
+        public RequestSpendStaminaMessage(float amount)
+        {
+            Amount = amount;
+        }
+
+        public float Amount { get; }
+    }
+
+    /// <summary>
+    /// The bow's held shot: released after a charge, 50 damage flat — the reference fires it with a
+    /// fixed 50 and applies no damage multiplier to it.
+    /// </summary>
+    public struct RequestHeavyShotMessage
+    {
+        public RequestHeavyShotMessage(float damage)
+        {
+            Damage = damage;
+        }
+
+        public float Damage { get; }
+    }
+
     /// <summary>Health, stamina, mana or gold moved: the HUD reads from here.</summary>
     public struct PlayerStatsChangedMessage
     {
@@ -103,5 +142,24 @@ namespace ProjectTA.Message
         public EnumManager.SkillSlot Slot { get; }
         public EnumManager.WeaponKind Weapon { get; }
         public bool Active { get; }
+    }
+
+    /// <summary>
+    /// The reference game's getSpeedMult / getDmgMult / getAtkCdMult, for the weapon in hand. Pushed
+    /// when they can change (a cast, an effect timing out, a weapon switch) so no consumer has to hold
+    /// a reference to the skill model.
+    /// </summary>
+    public struct SkillMultipliersMessage
+    {
+        public SkillMultipliersMessage(float speed, float damage, float attackCooldown)
+        {
+            SpeedMultiplier = speed;
+            DamageMultiplier = damage;
+            AttackCooldownMultiplier = attackCooldown;
+        }
+
+        public float SpeedMultiplier { get; }
+        public float DamageMultiplier { get; }
+        public float AttackCooldownMultiplier { get; }
     }
 }

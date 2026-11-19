@@ -95,6 +95,12 @@ namespace ProjectTA.Module.Input
 
         public void OnShootStart(InputAction.CallbackContext context)
         {
+            // A frozen run (pause or game over) must not fire: GameFlow owns the time scale.
+            if (Time.timeScale <= 0f)
+            {
+                return;
+            }
+
             Publish(new PlayerCharacterShootStartMessage());
         }
         public void OnShootEnd(InputAction.CallbackContext context)

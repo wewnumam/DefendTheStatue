@@ -11,6 +11,18 @@ namespace ProjectTA.Module.Hud
             base.SetView(view);
             _model.Reset();
             view.SetStatueHealth(_model.StatueHealth, _model.StatueMaxHealth);
+            view.SetWeapon(EnumManager.WeaponKind.Sword);
+        }
+
+        /// <summary>Weapon status line. The launcher may publish the switch before views are wired.</summary>
+        public void OnWeaponSwitched(WeaponSwitchedMessage message)
+        {
+            if (_view == null)
+            {
+                return;
+            }
+
+            _view.SetWeapon(message.Weapon);
         }
 
         public void OnPlayerStatsChanged(PlayerStatsChangedMessage message)

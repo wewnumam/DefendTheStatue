@@ -22,6 +22,13 @@ namespace ProjectTA.Module.GameFlow
 
         private int _outermostWallIndex = -1;
 
+        /// <summary>Spawn distances are game data, not code: read once from the GameConstants asset.</summary>
+        private MonsterConstants _monsterConstants = new MonsterConstants();
+
+        /// <summary>Pause and slow motion are run-local: both are just a time scale, no new run state.</summary>
+        private bool _isPaused;
+        private bool _isSlowMotion;
+
         public void InitModel(IGameConstantsModel gameConstants)
         {
             if (gameConstants == null || gameConstants.GameConstants == null)
@@ -32,6 +39,11 @@ namespace ProjectTA.Module.GameFlow
 
             _layout = new TerritoryLayout(gameConstants.GameConstants.TerritoryConstants);
             _ringHasWall = new bool[_layout.RingCount];
+
+            if (gameConstants.GameConstants.MonsterConstants != null)
+            {
+                _monsterConstants = gameConstants.GameConstants.MonsterConstants;
+            }
         }
 
         public override void SetView(GameFlowView view)
@@ -39,6 +51,52 @@ namespace ProjectTA.Module.GameFlow
             base.SetView(view);
             _model.Reset();
             view.SetCallback(OnTick);
+            view.SetPauseCallback(OnPausePressed);
+            view.SetTimeScale(1f);
+            view.SetSpawnDistance(_monsterConstants.CameraSpawnDistance);
+            _isPaused = false;
+            _isSlowMotion = false;
+        }
+
+        /// <summary>Escape toggles pause. Time scale 0 freezes FixedUpdate, so nothing else needs a flag.</summary>
+        private void OnPausePressed()
+        {
+            if (_model.IsDefeat || _model.IsVictory)
+            {
+                return;
+            }
+
+            _isPaused = !_isPaused;
+            ApplyTimeScale();
+            Publish(new PauseToggledMessage(_isPaused));
+        }
+
+        /// <summary>The skill upgrade interface asks for slow motion; pause wins when both are on.</summary>
+        public void OnSkillUpgradePanelToggled(SkillUpgradePanelToggledMessage message)
+        {
+            if (_model.IsDefeat || _model.IsVictory)
+            {
+                return;
+            }
+
+            _isSlowMotion = message.IsOpen;
+            ApplyTimeScale();
+        }
+
+        private void ApplyTimeScale()
+        {
+            if (_view == null)
+            {
+                return;
+            }
+
+            if (_isPaused)
+            {
+                _view.SetTimeScale(0f);
+                return;
+            }
+
+            _view.SetTimeScale(_isSlowMotion ? _view.SlowMotionScale : 1f);
         }
 
         private void OnTick(float deltaSeconds)
@@ -59,14 +117,16 @@ namespace ProjectTA.Module.GameFlow
             if (_outermostWallIndex >= 0)
             {
                 Vector2 ring = _layout.GetRingSize(_outermostWallIndex);
-                position = GameFlowModel.GetRingSpawnPosition(side, statue, ring.x, ring.y, Random.value);
+                position = GameFlowModel.GetRingSpawnPosition(
+                    side, statue, ring.x, ring.y, Random.value, _monsterConstants.SpawnOffset);
             }
             else
             {
                 _view.GetHalfViewSize(out float halfWidth, out float halfHeight);
                 Camera camera = _view.Camera;
                 Vector2 cameraPosition = camera != null ? (Vector2)camera.transform.position : statue;
-                position = GameFlowModel.GetCameraSpawnPosition(side, cameraPosition, halfWidth, halfHeight, Random.value);
+                position = GameFlowModel.GetCameraSpawnPosition(
+                    side, cameraPosition, halfWidth, halfHeight, Random.value, _monsterConstants.CameraSpawnDistance);
             }
 
             // Reference spawns always land outside the statue heal radius, so the tougher, richer
@@ -115,8 +175,27 @@ namespace ProjectTA.Module.GameFlow
             _model.RegisterMonsterKilled(message.GoldValue);
         }
 
+        /// <summary>
+        /// Playing means "a new run starts", so the reset lives here. GameOver marks the defeat flag so
+        /// the spawn clock stops for good, and freezes the world — nothing reads a GameState.Pause,
+        /// pause is a time scale on this side only.
+        /// </summary>
         public void OnGameState(GameStateMessage message)
         {
+            if (message.GameState == Utility.EnumManager.GameState.GameOver)
+            {
+                _model.MarkDefeat();
+                _isPaused = false;
+                _isSlowMotion = false;
+
+                if (_view != null)
+                {
+                    _view.SetTimeScale(0f);
+                }
+
+                return;
+            }
+
             if (message.GameState != Utility.EnumManager.GameState.Playing)
             {
                 return;
@@ -129,6 +208,13 @@ namespace ProjectTA.Module.GameFlow
             }
 
             _outermostWallIndex = -1;
+            _isPaused = false;
+            _isSlowMotion = false;
+
+            if (_view != null)
+            {
+                _view.SetTimeScale(1f);
+            }
         }
     }
 }
