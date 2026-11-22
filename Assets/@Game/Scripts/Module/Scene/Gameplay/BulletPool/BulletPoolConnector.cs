@@ -18,6 +18,9 @@ namespace ProjectTA.Module.BulletPool
             Subscribe<PlayerStatsChangedMessage>(_bulletPool.OnPlayerStatsChanged);
             Subscribe<SkillEffectToggledMessage>(_bulletPool.OnSkillEffectToggled);
             Subscribe<RequestHeavyShotMessage>(_bulletPool.OnRequestHeavyShot);
+            Subscribe<CheatToggledMessage>(_bulletPool.OnCheatToggled);
+            Subscribe<SkillCastMessage>(_bulletPool.OnSkillCast);
+            Subscribe<LockOnTargetMessage>(_bulletPool.OnLockOnTarget);
         }
 
         protected override void Disconnect()
@@ -31,6 +34,9 @@ namespace ProjectTA.Module.BulletPool
             Unsubscribe<PlayerStatsChangedMessage>(_bulletPool.OnPlayerStatsChanged);
             Unsubscribe<SkillEffectToggledMessage>(_bulletPool.OnSkillEffectToggled);
             Unsubscribe<RequestHeavyShotMessage>(_bulletPool.OnRequestHeavyShot);
+            Unsubscribe<CheatToggledMessage>(_bulletPool.OnCheatToggled);
+            Unsubscribe<SkillCastMessage>(_bulletPool.OnSkillCast);
+            Unsubscribe<LockOnTargetMessage>(_bulletPool.OnLockOnTarget);
         }
     }
 }

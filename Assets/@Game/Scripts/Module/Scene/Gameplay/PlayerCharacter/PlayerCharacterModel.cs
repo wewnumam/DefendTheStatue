@@ -5,28 +5,39 @@ using UnityEngine;
 namespace ProjectTA.Module.PlayerCharacter
 {
     /// <summary>
-    /// Owns every player-authored number: stats, gold, ammo. Rules are a direct port of the
-    /// reference game's per-frame player update, converted from 60 fps frames to seconds.
+    /// Owns every player-authored number: stats, essence, mana, ammo. Mana follows the GDD: it starts
+    /// at 0, the cap grows by 1 per kill and there is no passive regeneration.
     /// </summary>
     public class PlayerCharacterModel : BaseModel
     {
+        /// <summary>GDD §4: respawn grants 3 seconds of invincibility.</summary>
+        public const float RespawnInvulnerableSeconds = 3f;
+
+        /// <summary>GDD §4: dying costs the statue 30 HP.</summary>
+        public const float DeathStatuePenalty = 30f;
+
         public PlayerConstants PlayerConstants { get; private set; } = null;
         public bool IsJoystickActive { get; private set; }
 
         public float Health { get; private set; }
         public float Stamina { get; private set; }
         public float Mana { get; private set; }
-        public int Gold { get; private set; }
+        public int Essence { get; private set; }
         public int Arrows { get; private set; }
         public int StatueLevel { get; private set; } = 1;
 
         public bool IsGodMode { get; private set; }
         public bool IsInfiniteStamina { get; private set; }
         public bool IsInfiniteArrows { get; private set; }
+        public bool IsInfiniteEssence { get; private set; }
 
         public float MaxHealth => PlayerConstants != null ? PlayerConstants.MaxHealth : 0f;
         public float MaxStamina => PlayerConstants != null ? PlayerConstants.MaxStamina : 0f;
-        public float MaxMana => PlayerConstants != null ? PlayerConstants.MaxMana : 0f;
+
+        /// <summary>GDD §4: the mana cap is earned, one point per kill.</summary>
+        public float MaxMana => _manaCapacity;
+
+        public bool IsInvulnerable => _invulnerableRemaining > 0f;
 
         /// <summary>Reference game: maxArrows = Math.min(6, statue.level).</summary>
         public int MaxArrows =>
@@ -38,6 +49,8 @@ namespace ProjectTA.Module.PlayerCharacter
         public bool IsStaminaDepleted => Stamina <= 0f;
 
         private float _arrowRespawnTimer;
+        private float _manaCapacity;
+        private float _invulnerableRemaining;
 
         #region SETUP
 
@@ -64,14 +77,17 @@ namespace ProjectTA.Module.PlayerCharacter
             StatueLevel = 1;
             Health = MaxHealth;
             Stamina = MaxStamina;
-            Mana = MaxMana;
-            Gold = PlayerConstants.StartingGold;
+            _manaCapacity = PlayerConstants.StartingManaCapacity;
+            Mana = 0f;
+            _invulnerableRemaining = 0f;
+            Essence = PlayerConstants.StartingEssence;
             Arrows = MaxArrows;
             _arrowRespawnTimer = 0f;
 
             IsGodMode = false;
             IsInfiniteStamina = false;
             IsInfiniteArrows = false;
+            IsInfiniteEssence = false;
 
             SetDataAsDirty();
         }
@@ -81,8 +97,8 @@ namespace ProjectTA.Module.PlayerCharacter
         #region TICK
 
         /// <summary>
-        /// Port of the reference game's player block: heal aura, block drain, idle regen, arrow
-        /// respawn. Blocking, charging and attacking are mutually exclusive regen locks.
+        /// Heal aura, block drain, stamina regen, respawn invulnerability and the arrow clock. Mana has
+        /// no passive regen (GDD §4), so nothing here touches it.
         /// </summary>
         public void Tick(
             float deltaTime,
@@ -109,7 +125,11 @@ namespace ProjectTA.Module.PlayerCharacter
             if (!isBlocking && !isCharging && !isAttacking)
             {
                 Stamina = Mathf.Min(MaxStamina, Stamina + PlayerConstants.StaminaRegenPerSecond * deltaTime);
-                Mana = Mathf.Min(MaxMana, Mana + PlayerConstants.ManaRegenPerSecond * deltaTime);
+            }
+
+            if (_invulnerableRemaining > 0f)
+            {
+                _invulnerableRemaining = Mathf.Max(0f, _invulnerableRemaining - deltaTime);
             }
 
             if (IsInfiniteStamina)
@@ -152,31 +172,39 @@ namespace ProjectTA.Module.PlayerCharacter
 
         #region RESOURCES
 
-        public bool TrySpendGold(int amount)
+        public bool TrySpendEssence(int amount)
         {
-            if (amount <= 0)
+            if (amount <= 0 || IsInfiniteEssence)
             {
                 return true;
             }
 
-            if (Gold < amount)
+            if (Essence < amount)
             {
                 return false;
             }
 
-            Gold -= amount;
+            Essence -= amount;
             SetDataAsDirty();
             return true;
         }
 
-        public void AddGold(int amount)
+        public void AddEssence(int amount)
         {
             if (amount <= 0)
             {
                 return;
             }
 
-            Gold += amount;
+            Essence += amount;
+            SetDataAsDirty();
+        }
+
+        /// <summary>GDD §4: each kill raises the mana cap by 1 and tops the pool up with that point.</summary>
+        public void RegisterKill()
+        {
+            _manaCapacity += 1f;
+            Mana = Mathf.Min(_manaCapacity, Mana + 1f);
             SetDataAsDirty();
         }
 
@@ -242,7 +270,7 @@ namespace ProjectTA.Module.PlayerCharacter
         /// <summary>Upgrading the statue raises both the arrow cap and the current arrows.</summary>
         public void SetStatueLevel(int level)
         {
-            StatueLevel = Mathf.Clamp(level, 1, 7);
+            StatueLevel = Mathf.Clamp(level, 1, 10);
 
             if (Arrows < MaxArrows)
             {
@@ -256,10 +284,10 @@ namespace ProjectTA.Module.PlayerCharacter
 
         #region DAMAGE
 
-        /// <summary>Returns false when the hit was swallowed by god mode.</summary>
+        /// <summary>Returns false when the hit was swallowed by god mode or the respawn window.</summary>
         public bool ApplyDamage(float amount)
         {
-            if (amount <= 0f || IsGodMode)
+            if (amount <= 0f || IsGodMode || IsInvulnerable)
             {
                 return false;
             }
@@ -267,6 +295,30 @@ namespace ProjectTA.Module.PlayerCharacter
             Health = Mathf.Max(0f, Health - amount);
             SetDataAsDirty();
             return true;
+        }
+
+        /// <summary>
+        /// GDD §4: back on your feet at full health with 3 s of invincibility. Mana is untouched — the
+        /// cap is earned per kill, not per life.
+        /// </summary>
+        public void Respawn()
+        {
+            Health = MaxHealth;
+            Stamina = MaxStamina;
+            _invulnerableRemaining = RespawnInvulnerableSeconds;
+            SetDataAsDirty();
+        }
+
+        /// <summary>Dev-console mana grant; clamped to the current cap.</summary>
+        public void AddMana(float amount)
+        {
+            if (amount <= 0f)
+            {
+                return;
+            }
+
+            Mana = Mathf.Min(MaxMana, Mana + amount);
+            SetDataAsDirty();
         }
 
         public void Heal(float amount)
@@ -289,6 +341,13 @@ namespace ProjectTA.Module.PlayerCharacter
         public void SetInfiniteStamina(bool isActive)
         {
             IsInfiniteStamina = isActive;
+            SetDataAsDirty();
+        }
+
+        /// <summary>Dev console: building and upgrading never dip into the purse.</summary>
+        public void SetInfiniteEssence(bool isActive)
+        {
+            IsInfiniteEssence = isActive;
             SetDataAsDirty();
         }
 

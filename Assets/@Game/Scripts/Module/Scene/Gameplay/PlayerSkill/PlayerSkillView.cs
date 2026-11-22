@@ -85,6 +85,11 @@ namespace ProjectTA.Module.PlayerSkill
             {
                 _onCastRequested?.Invoke(EnumManager.SkillSlot.Skill3);
             }
+
+            if (keyboard.digit4Key.wasPressedThisFrame)
+            {
+                _onCastRequested?.Invoke(EnumManager.SkillSlot.Skill4);
+            }
         }
     }
 }

@@ -27,6 +27,33 @@ namespace ProjectTA.Message
         public int ManaSpent { get; }
     }
 
+    /// <summary>GDD §4: the pawn went down. The run continues; the results screen counts these.</summary>
+    public struct PlayerDiedMessage
+    {
+    }
+
+    /// <summary>GDD §10: chopping a Purple/Magic/Arcana tree pays mana into the player's pool.</summary>
+    public struct RequestManaGainMessage
+    {
+        public RequestManaGainMessage(float amount)
+        {
+            Amount = amount;
+        }
+
+        public float Amount { get; }
+    }
+
+    /// <summary>GDD §20: an enemy hit the player. Health is owned by the player module, so this is a bill.</summary>
+    public struct RequestPlayerDamageMessage
+    {
+        public RequestPlayerDamageMessage(float amount)
+        {
+            Amount = amount;
+        }
+
+        public float Amount { get; }
+    }
+
     /// <summary>A timed slow area appeared (sword time slash, spike trap).</summary>
     public struct SlowFieldAddedMessage
     {
@@ -44,10 +71,10 @@ namespace ProjectTA.Message
         public float DurationSeconds { get; }
     }
 
-    /// <summary>The player was asked to pay: gold stays owned by the player module, so spenders post this.</summary>
-    public struct RequestSpendGoldMessage
+    /// <summary>The player was asked to pay: essence stays owned by the player module, so spenders post this.</summary>
+    public struct RequestSpendEssenceMessage
     {
-        public RequestSpendGoldMessage(int amount)
+        public RequestSpendEssenceMessage(int amount)
         {
             Amount = amount;
         }
@@ -68,7 +95,7 @@ namespace ProjectTA.Message
 
     /// <summary>
     /// Stamina bill for a swing, an arrow or a charged shot. The player module owns the pool, so every
-    /// other module posts here the way it does for gold and arrows.
+    /// other module posts here the way it does for essence and arrows.
     /// </summary>
     public struct RequestSpendStaminaMessage
     {
@@ -94,10 +121,10 @@ namespace ProjectTA.Message
         public float Damage { get; }
     }
 
-    /// <summary>Health, stamina, mana or gold moved: the HUD reads from here.</summary>
+    /// <summary>Health, stamina, mana or essence moved: the HUD reads from here.</summary>
     public struct PlayerStatsChangedMessage
     {
-        public PlayerStatsChangedMessage(float health, float maxHealth, float stamina, float maxStamina, float mana, float maxMana, int gold, int arrows)
+        public PlayerStatsChangedMessage(float health, float maxHealth, float stamina, float maxStamina, float mana, float maxMana, int essence, int arrows)
         {
             Health = health;
             MaxHealth = maxHealth;
@@ -105,7 +132,7 @@ namespace ProjectTA.Message
             MaxStamina = maxStamina;
             Mana = mana;
             MaxMana = maxMana;
-            Gold = gold;
+            Essence = essence;
             Arrows = arrows;
         }
 
@@ -115,7 +142,7 @@ namespace ProjectTA.Message
         public float MaxStamina { get; }
         public float Mana { get; }
         public float MaxMana { get; }
-        public int Gold { get; }
+        public int Essence { get; }
         public int Arrows { get; }
     }
 

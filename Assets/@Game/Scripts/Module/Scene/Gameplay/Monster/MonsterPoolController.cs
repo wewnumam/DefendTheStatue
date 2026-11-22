@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Agate.MVC.Base;
 using ProjectTA.Message;
+using ProjectTA.Module.AdaptiveAi;
 using ProjectTA.Module.GameConstants;
 using ProjectTA.Module.SlowField;
 using UnityEngine;
@@ -32,6 +33,17 @@ namespace ProjectTA.Module.Monster
         /// </summary>
         private readonly SlowFieldModel _slowFields = new SlowFieldModel();
 
+        /// <summary>
+        /// The pool's own copy of the living trees, fed by TreeSpawnedMessage / TreeChoppedMessage, so a
+        /// hurt monster can walk to a tree without the monster module reaching into the tree model.
+        /// </summary>
+        private readonly Dictionary<int, Vector2> _trees = new Dictionary<int, Vector2>();
+        private readonly Dictionary<int, Utility.EnumManager.TreeKind> _treeKinds =
+            new Dictionary<int, Utility.EnumManager.TreeKind>();
+
+        private TreeConstants _treeConstants;
+        private bool _oneHitKill;
+
         public void InitModel(IGameConstantsModel gameConstants)
         {
             if (gameConstants == null || gameConstants.GameConstants == null)
@@ -41,6 +53,7 @@ namespace ProjectTA.Module.Monster
             }
 
             _model.SetMonsterConstants(gameConstants.GameConstants.MonsterConstants);
+            _treeConstants = gameConstants.GameConstants.TreeConstants;
         }
 
         public override void SetView(MonsterPoolView view)
@@ -82,12 +95,33 @@ namespace ProjectTA.Module.Monster
             return controller;
         }
 
+        /// <summary>Statue heal radius (GDD §5: 120), in world units.</summary>
+        private const float StatueHealRadius = 120f;
+
+        private bool _healZoneTainted;
+
+        /// <summary>GDD §14 adaptive difficulty: applied to every monster as it spawns.</summary>
+        private float _statMultiplier = 1f;
+        private readonly List<MonsterModel.AllyAttack> _allyAttacks = new List<MonsterModel.AllyAttack>();
+
+        /// <summary>GDD §7: monsters bite whoever is closer, so the pool needs the pawn's position.</summary>
+        private Transform _player;
+
+        /// <summary>How close the player must stand before a hurt monster bolts (GDD §7).</summary>
+        private const float RetreatNearDistance = 120f;
+
+        public void SetPlayerTransform(Transform player)
+        {
+            _player = player;
+        }
+
         private void OnTick(float deltaTime)
         {
             // The statue sits on the world origin — every territory ring is centred there — so the walk
             // target is a constant rather than a lookup through another module.
             float now = Time.time;
             _slowFields.RemoveExpired(now);
+            _model.TickHealCooldowns(deltaTime);
 
             for (int i = 0; i < _model.Count; i++)
             {
@@ -101,8 +135,47 @@ namespace ProjectTA.Module.Monster
                 // decides the next step: walls and neighbours have had their say by now.
                 _model.SetPosition(monster.Id, controller.ViewRef.Position);
                 float multiplier = _slowFields.GetSpeedMultiplierAt(monster.Position, now);
-                controller.SetVelocity(_model.GetVelocity(monster, Vector2.zero, _model.Constants.StopDistance, multiplier));
+
+                Vector2 target = Vector2.zero;
+                float stopDistance = _model.Constants.StopDistance;
+
+                // GDD §7 retreat wins over healing and biting: hurt + player nearby means run away.
+                monster.IsRetreating = _player != null
+                    && monster.WantsRetreat(_player.position, RetreatNearDistance);
+
+                if (monster.IsRetreating)
+                {
+                    target = monster.Position + (monster.Position - (Vector2)_player.position).normalized * 1000f;
+                    stopDistance = 0f;
+                    controller.SetVelocity(_model.GetVelocity(
+                        monster, target, stopDistance, multiplier * _model.Constants.RetreatSpeedMultiplier));
+                    controller.TickAnimation(deltaTime);
+                    continue;
+                }
+
+                TryHealAtTree(monster, ref target, ref stopDistance);
+
+                controller.SetVelocity(_model.GetVelocity(monster, target, stopDistance, multiplier));
                 controller.TickAnimation(deltaTime);
+            }
+
+            // GDD §5: the statue's heal zone is tainted while anything hostile stands inside it.
+            bool tainted = _model.FindNearestInRange(Vector2.zero, StatueHealRadius) >= 0;
+            if (tainted != _healZoneTainted)
+            {
+                _healZoneTainted = tainted;
+                Publish(new HealZoneTaintMessage(tainted));
+            }
+
+            // GDD §13 sword skill 4: allies swing at the nearest hostile monster.
+            _allyAttacks.Clear();
+            if (_model.CollectAllyAttacks(deltaTime, _allyAttacks) > 0)
+            {
+                for (int i = 0; i < _allyAttacks.Count; i++)
+                {
+                    MonsterModel.AllyAttack attack = _allyAttacks[i];
+                    OnDamageMonster(new RequestDamageMonsterMessage(attack.VictimId, attack.Damage, attack.HitPosition));
+                }
             }
 
             // Bites are reported, not applied: statue health is the statue module's to change.
@@ -120,6 +193,107 @@ namespace ProjectTA.Module.Monster
                     biter.PlayAttack();
                 }
             }
+
+            // GDD §20: whoever is closer to the pawn bites the pawn instead of the statue.
+            if (_player != null)
+            {
+                _attackedIds.Clear();
+                float playerDamage = _model.CollectPlayerDamage(
+                    deltaTime, _player.position, Vector2.zero, _attackedIds);
+
+                if (playerDamage > 0f)
+                {
+                    Publish(new RequestPlayerDamageMessage(playerDamage));
+                }
+
+                for (int i = 0; i < _attackedIds.Count; i++)
+                {
+                    if (_bound.TryGetValue(_attackedIds[i], out MonsterController biter))
+                    {
+                        biter.PlayAttack();
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Reference hpRatio &lt; 0.3 branch: walk to the nearest tree, bite it for its health, and take
+        /// the tree's heal. Leaves the statue walk untouched when no tree is close enough.
+        /// </summary>
+        private void TryHealAtTree(MonsterState monster, ref Vector2 target, ref float stopDistance)
+        {
+            if (_treeConstants == null || !monster.WantsHeal)
+            {
+                return;
+            }
+
+            int treeId = FindNearestTree(monster.Position);
+            if (treeId < 0)
+            {
+                return;
+            }
+
+            target = _trees[treeId];
+            stopDistance = _treeConstants.MonsterHealRadius;
+
+            if ((monster.Position - target).magnitude > stopDistance)
+            {
+                return;
+            }
+
+            if (!monster.TryStartHealCooldown(_model.Constants.HealCooldownSeconds))
+            {
+                return;
+            }
+
+            Utility.EnumManager.TreeKind kind = _treeKinds.ContainsKey(treeId)
+                ? _treeKinds[treeId]
+                : Utility.EnumManager.TreeKind.Red;
+            TreeKindStats stats = _treeConstants.GetKind(kind);
+
+            _model.Heal(monster.Id, stats.HpDrop);
+            Publish(new RequestTreeDamageMessage(
+                treeId,
+                stats.Health * _treeConstants.MonsterHealTreeDamageFraction,
+                target,
+                true));
+        }
+
+        private int FindNearestTree(Vector2 from)
+        {
+            int nearest = -1;
+            float bestSquared = _treeConstants.HealSearchRange * _treeConstants.HealSearchRange;
+
+            foreach (KeyValuePair<int, Vector2> tree in _trees)
+            {
+                // GDD §10: monsters never eat a Purple tree.
+                if (_treeKinds.ContainsKey(tree.Key)
+                    && _treeKinds[tree.Key] == Utility.EnumManager.TreeKind.Purple)
+                {
+                    continue;
+                }
+
+                float squared = (tree.Value - from).sqrMagnitude;
+                if (squared < bestSquared)
+                {
+                    bestSquared = squared;
+                    nearest = tree.Key;
+                }
+            }
+
+            return nearest;
+        }
+
+        public void OnTreeSpawned(TreeSpawnedMessage message)
+        {
+            _trees[message.TreeId] = message.Position;
+            _treeKinds[message.TreeId] = message.Kind;
+        }
+
+        public void OnTreeChopped(TreeChoppedMessage message)
+        {
+            _trees.Remove(message.TreeId);
+            _treeKinds.Remove(message.TreeId);
         }
 
         public void OnSlowFieldAdded(SlowFieldAddedMessage message)
@@ -129,7 +303,7 @@ namespace ProjectTA.Module.Monster
 
         public void OnSpawnMonster(RequestSpawnMonsterMessage message)
         {
-            int id = _model.Add(message.Position, message.InHealRadius);
+            int id = _model.Add(message.Position, message.InHealRadius, message.Kind, _statMultiplier);
             MonsterState monster = _model.Get(id);
 
             MonsterController controller = Rent(id);
@@ -139,7 +313,7 @@ namespace ProjectTA.Module.Monster
                 controller.ViewRef.gameObject.SetActive(true);
             }
 
-            Publish(new MonsterSpawnedMessage(id, monster.Position, monster.InHealRadius, monster.Health));
+            Publish(new MonsterSpawnedMessage(id, monster.Position, monster.InHealRadius, monster.Health, monster.Kind));
         }
 
         public void OnDamageMonster(RequestDamageMonsterMessage message)
@@ -150,19 +324,56 @@ namespace ProjectTA.Module.Monster
                 return;
             }
 
-            _model.ApplyDamage(message.MonsterId, message.Amount);
+            _model.ApplyDamage(message.MonsterId, _oneHitKill ? 999999f : message.Amount);
             ReportHit(message.MonsterId, message.HitPosition);
         }
 
         public void OnAreaDamage(RequestAreaDamageMessage message)
         {
             _hitIds.Clear();
-            _model.ApplyAreaDamage(message.Center, message.Radius, message.Amount, _hitIds, message.OncePerMonster);
+            _model.ApplyAreaDamage(message.Center, message.Radius, _oneHitKill ? 999999f : message.Amount, _hitIds, message.OncePerMonster);
 
             for (int i = 0; i < _hitIds.Count; i++)
             {
                 ReportHit(_hitIds[i], message.HitOrigin);
             }
+        }
+
+        public void OnCheatToggled(CheatToggledMessage message)
+        {
+            if (message.Cheat == Utility.EnumManager.CheatType.OneHitKill)
+            {
+                _oneHitKill = message.Enabled;
+            }
+        }
+
+        public void OnDevKillAll(DevKillAllMessage message)
+        {
+            for (int i = _model.Monsters.Count - 1; i >= 0; i--)
+            {
+                MonsterState monster = _model.Monsters[i];
+                OnDamageMonster(new RequestDamageMonsterMessage(monster.Id, 999999f, monster.Position));
+            }
+        }
+
+        public void OnThreatLevel(ThreatLevelMessage message)
+        {
+            _statMultiplier = Mathf.Clamp(message.MonsterBuff, 1f, AdaptiveAiModel.MaxMonsterBuff);
+        }
+
+        public void OnMindControl(MindControlMessage message)
+        {
+            _model.ApplyMindControl(message.Center, message.Radius, message.DurationSeconds, message.DamageMultiplier);
+        }
+
+        /// <summary>Bow skill 2 asks for something to lock onto; the pool answers with the nearest live monster.</summary>
+        public void OnRequestLockOnTarget(RequestLockOnTargetMessage message)
+        {
+            int id = _model.FindNearestInRange(message.Origin, message.Range);
+            MonsterState target = id >= 0 ? _model.Get(id) : null;
+            Publish(target != null
+                ? new LockOnTargetMessage(target.Position, true)
+                : new LockOnTargetMessage(Vector2.zero, false));
         }
 
         public void OnResetDashHits(RequestResetDashHitsMessage message)
@@ -184,13 +395,14 @@ namespace ProjectTA.Module.Monster
                 if (_bound.TryGetValue(monsterId, out MonsterController hurt))
                 {
                     hurt.PlayHit();
+                    hurt.Flash();
                 }
 
                 Publish(new MonsterDamagedMessage(monsterId, monster.Health, hitPosition));
                 return;
             }
 
-            Publish(new MonsterKilledMessage(monsterId, monster.Position, monster.GoldValue));
+            Publish(new MonsterKilledMessage(monsterId, monster.Position, monster.EssenceValue, monster.Kind));
 
             _removedIds.Clear();
             _removedIds.Add(monsterId);
@@ -233,6 +445,7 @@ namespace ProjectTA.Module.Monster
             _model.Clear();
             _bound.Clear();
             _slowFields.Clear();
+            _trees.Clear();
 
             for (int i = 0; i < _pool.Count; i++)
             {

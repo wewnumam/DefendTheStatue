@@ -9,14 +9,19 @@ using UnityEngine;
 namespace ProjectTA.Module.Statue
 {
     /// <summary>
-    /// Statue health, the upgrade ladder and the gates in front of each level. Gold and the wall
+    /// Statue health, the upgrade ladder and the gates in front of each level. Essence and the wall
     /// counts arrive as messages, so the statue never reaches into the player or territory modules.
     /// </summary>
     public class StatueController : ObjectController<StatueController, StatueModel, StatueView>
     {
         private int[] _wallSegmentsBuilt = System.Array.Empty<int>();
-        private int _gold;
+        private int _essence;
         private int _monstersKilled;
+        private int _guardsAtLevel3;
+        private int _guardsAtLevel5;
+        private bool _bossDefeated;
+
+        private bool _isInvulnerable;
 
         public void InitModel(IGameConstantsModel gameConstants)
         {
@@ -48,23 +53,24 @@ namespace ProjectTA.Module.Statue
             if (!BuildRules.CanUpgradeToLevel(
                     nextLevel,
                     AllWallsBuilt(0),
-                    _model.GuardFoundationsSpawned,
+                    _guardsAtLevel3,
                     AllWallsBuilt(1),
-                    _model.GuardFoundationsSpawned,
-                    _monstersKilled))
+                    _guardsAtLevel5,
+                    _monstersKilled,
+                    _bossDefeated))
             {
                 return;
             }
 
             int cost = _model.UpgradeCost;
-            if (_gold < cost)
+            if (_essence < cost)
             {
                 return;
             }
 
             StatueUpgradeEffect effect = _model.Upgrade();
             _view.SetLevel(_model.Level);
-            Publish(new RequestSpendGoldMessage(cost));
+            Publish(new RequestSpendEssenceMessage(cost));
             Publish(new StatueUpgradedMessage(_model.Level, effect, cost));
 
             if (effect.UnlocksTerritory)
@@ -75,6 +81,11 @@ namespace ProjectTA.Module.Statue
 
         public void OnRequestDamage(RequestStatueDamageMessage message)
         {
+            if (_isInvulnerable)
+            {
+                return;
+            }
+
             if (!_model.ApplyDamage(message.Amount))
             {
                 return;
@@ -106,9 +117,65 @@ namespace ProjectTA.Module.Statue
             _monstersKilled++;
         }
 
+        /// <summary>
+        /// The ladder counts recruited guards, not foundations: level 4 wants three guards from the
+        /// level 3 foundations, level 6 wants six from the level 5 ones.
+        /// </summary>
+        public void OnGuardBuilt(GuardBuiltMessage message)
+        {
+            // Ladder gates count exact tiers: perimeter guards must not satisfy the six-outer gate.
+            if (message.FoundationLevel == 5)
+            {
+                _guardsAtLevel5++;
+            }
+            else if (message.FoundationLevel == 3)
+            {
+                _guardsAtLevel3++;
+            }
+        }
+
+        /// <summary>GDD §5: levels 8-10 accept (or, at 10, demand) the boss kill.</summary>
+        public void OnBossDefeated(BossDefeatedMessage message)
+        {
+            _bossDefeated = true;
+        }
+
         public void OnPlayerStatsChanged(PlayerStatsChangedMessage message)
         {
-            _gold = message.Gold;
+            _essence = message.Essence;
+        }
+
+        public void OnCheatToggled(CheatToggledMessage message)
+        {
+            if (message.Cheat == EnumManager.CheatType.GodMode)
+            {
+                _isInvulnerable = message.Enabled;
+            }
+        }
+
+        public void OnDevHeal(DevHealStatueMessage message)
+        {
+            _model.Heal(_model.MaxHealth);
+            Publish(new StatueDamagedMessage(_model.Health, _model.MaxHealth));
+        }
+
+        /// <summary>Dev action: walk the ladder without essence or gates and announce every step.</summary>
+        public void OnDevMaxLevel(DevMaxLevelMessage message)
+        {
+            while (!_model.IsMaxLevel)
+            {
+                StatueUpgradeEffect effect = _model.Upgrade();
+                Publish(new StatueUpgradedMessage(_model.Level, effect, 0));
+
+                if (effect.UnlocksTerritory)
+                {
+                    Publish(new TerritoryUnlockedMessage(effect.UnlockedTerritoryIndex));
+                }
+            }
+
+            _model.Heal(_model.MaxHealth);
+            _view?.SetLevel(_model.Level);
+            Publish(new StatueDamagedMessage(_model.Health, _model.MaxHealth));
         }
 
         public void OnGameState(GameStateMessage message)
@@ -139,6 +206,8 @@ namespace ProjectTA.Module.Statue
             }
 
             _monstersKilled = 0;
+            _guardsAtLevel3 = 0;
+            _guardsAtLevel5 = 0;
         }
     }
 }

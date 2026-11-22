@@ -7,7 +7,7 @@ using UnityEngine;
 namespace ProjectTA.Tests.EditMode
 {
     /// <summary>
-    /// Skill gating, cooldowns and effect state. Gates are statue level 3 / 5 / 7 and cooldowns are
+    /// Skill gating, cooldowns and effect state. Gates are statue level 3 / 5 / 7 / 9 (GDD §13) and cooldowns are
     /// tracked per weapon, matching the reference game's per-weapon cooldown fields.
     /// </summary>
     public class PlayerSkillModelTests
@@ -17,6 +17,7 @@ namespace ProjectTA.Tests.EditMode
         private const EnumManager.SkillSlot Skill1 = EnumManager.SkillSlot.Skill1;
         private const EnumManager.SkillSlot Skill2 = EnumManager.SkillSlot.Skill2;
         private const EnumManager.SkillSlot Skill3 = EnumManager.SkillSlot.Skill3;
+        private const EnumManager.SkillSlot Skill4 = EnumManager.SkillSlot.Skill4;
 
         private SOGameConstants _constants;
         private PlayerSkillModel _model;
@@ -32,12 +33,13 @@ namespace ProjectTA.Tests.EditMode
         }
 
         [Test]
-        public void Skills_UnlockAtStatueLevelsThreeFiveSeven()
+        public void Skills_UnlockAtStatueLevelsThreeFiveSevenNine()
         {
             _model.SetStatueLevel(2);
             Assert.That(_model.IsUnlocked(Skill1), Is.False);
             Assert.That(_model.IsUnlocked(Skill2), Is.False);
             Assert.That(_model.IsUnlocked(Skill3), Is.False);
+            Assert.That(_model.IsUnlocked(Skill4), Is.False);
 
             _model.SetStatueLevel(3);
             Assert.That(_model.IsUnlocked(Skill1), Is.True);
@@ -49,6 +51,10 @@ namespace ProjectTA.Tests.EditMode
 
             _model.SetStatueLevel(7);
             Assert.That(_model.IsUnlocked(Skill3), Is.True);
+            Assert.That(_model.IsUnlocked(Skill4), Is.False);
+
+            _model.SetStatueLevel(9);
+            Assert.That(_model.IsUnlocked(Skill4), Is.True);
         }
 
         [Test]
@@ -57,6 +63,7 @@ namespace ProjectTA.Tests.EditMode
             Assert.That(_model.GetManaCost(Skill1), Is.EqualTo(5f));
             Assert.That(_model.GetManaCost(Skill2), Is.EqualTo(20f));
             Assert.That(_model.GetManaCost(Skill3), Is.EqualTo(20f));
+            Assert.That(_model.GetManaCost(Skill4), Is.EqualTo(50f), "GDD §13: skill 4 costs 50");
         }
 
         [Test]
@@ -168,8 +175,8 @@ namespace ProjectTA.Tests.EditMode
 
             _model.Cast(Sword, Skill3, false);
 
-            Assert.That(_model.GetSpeedMultiplier(Sword), Is.EqualTo(3f));
-            Assert.That(_model.GetDamageMultiplier(Sword), Is.EqualTo(3f));
+            Assert.That(_model.GetSpeedMultiplier(Sword), Is.EqualTo(4f));
+            Assert.That(_model.GetDamageMultiplier(Sword), Is.EqualTo(4f));
             Assert.That(_model.GetEffectRemaining(Sword, Skill3), Is.EqualTo(5f).Within(0.001f));
 
             _model.Tick(5f);
@@ -227,6 +234,30 @@ namespace ProjectTA.Tests.EditMode
 
             Assert.That(_model.IsEffectActive(Sword, Skill3), Is.False);
             Assert.That(_model.IsOnCooldown(Sword, Skill3), Is.False);
+        }
+
+        [Test]
+        public void Skill4_UnlocksAtNineAndRunsForSixSeconds()
+        {
+            _model.SetStatueLevel(8);
+            Assert.That(_model.Cast(Sword, Skill4, false), Is.False, "locked until level 9");
+
+            _model.SetStatueLevel(9);
+            Assert.That(_model.Cast(Sword, Skill4, false), Is.True);
+            Assert.That(_model.GetEffectRemaining(Sword, Skill4), Is.EqualTo(6f).Within(0.001f));
+            Assert.That(_model.Cast(Sword, Skill4, false), Is.False, "refuses a recast while running");
+
+            Assert.That(_model.Cast(Bow, Skill4, false), Is.True, "cooldowns are per weapon");
+            Assert.That(_model.GetEffectRemaining(Bow, Skill4), Is.EqualTo(6f).Within(0.001f));
+        }
+
+        [Test]
+        public void Skill4_ManaGateIsFifty()
+        {
+            _model.SetStatueLevel(9);
+
+            Assert.That(_model.CanCast(Sword, Skill4, 49f, false), Is.False);
+            Assert.That(_model.CanCast(Sword, Skill4, 50f, false), Is.True);
         }
     }
 }

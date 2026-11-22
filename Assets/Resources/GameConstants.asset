@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: GameConstants
   m_EditorClassIdentifier: Assembly-CSharp::ProjectTA.Module.GameConstants.SOGameConstants
   _isJoystickActive: 0
+  _isDebugBuild: 1
   _playerConstants:
     _enemyLayer:
       serializedVersion: 2
@@ -22,15 +23,14 @@ MonoBehaviour:
     _rayDistance: 100
     _fixedYPosition: 1
     _knockbackForce: 100
-    _maxHealth: 100
-    _maxStamina: 50
-    _maxMana: 20
-    _startingGold: 50000
-    _staminaBlockDrainPerSecond: 24
+    _maxHealth: 50
+    _maxStamina: 20
+    _maxMana: 0
+    _startingEssence: 0
+    _staminaBlockDrainPerSecond: 0.5
     _staminaRegenPerSecond: 9
-    _manaRegenPerSecond: 3
     _healPerSecond: 18
-    _arrowRespawnSeconds: 10
+    _arrowRespawnSeconds: 4
     _maxArrowCapacity: 6
     _dashSpeed: 1080
     _dashDurationSeconds: 0.2
@@ -38,6 +38,7 @@ MonoBehaviour:
     _skill1RequiredStatueLevel: 3
     _skill2RequiredStatueLevel: 5
     _skill3RequiredStatueLevel: 7
+    _skill4RequiredStatueLevel: 9
     _skill1CooldownSeconds: 6
     _skill1ManaCost: 5
     _skill2CooldownSeconds: 6
@@ -49,9 +50,17 @@ MonoBehaviour:
     _skill3CooldownSeconds: 8
     _skill3ManaCost: 20
     _skill3DurationSeconds: 5
-    _berserkerSpeedMultiplier: 3
-    _berserkerDamageMultiplier: 3
+    _berserkerSpeedMultiplier: 4
+    _berserkerDamageMultiplier: 4
     _cloneModeAttackCooldownMultiplier: 0.5
+    _skill4CooldownSeconds: 20
+    _skill4ManaCost: 50
+    _skill4DurationSeconds: 6
+    _mindControlRadius: 180
+    _mindControlDamageMultiplier: 1.5
+    _guardEmpowerRadius: 180
+    _guardEmpowerDamageMultiplier: 4
+    _guardEmpowerAttackSpeedMultiplier: 2
   _shootingConstants:
     _joystickShootingRange: 0.9
     _bulletPoolSize: 25
@@ -62,17 +71,36 @@ MonoBehaviour:
     _size: 1
     _statueSize: 3
     _speedPerSecond: 5
-    _baseHealth: 20
-    _healRadiusHealth: 40
-    _baseDamage: 10
-    _healRadiusDamage: 30
-    _baseGoldValue: 5
-    _healRadiusGoldValue: 15
+    _kinds:
+    - _health: 3
+      _speedMultiplier: 1
+      _essence: 1
+      _statueDamage: 2
+      _structureDamage: 1
+      _playerDamage: 1
+      _guardDamage: 1
+    - _health: 10
+      _speedMultiplier: 0.5
+      _essence: 2
+      _statueDamage: 1
+      _structureDamage: 4
+      _playerDamage: 1
+      _guardDamage: 1
+    - _health: 2
+      _speedMultiplier: 2
+      _essence: 2
+      _statueDamage: 1
+      _structureDamage: 1
+      _playerDamage: 4
+      _guardDamage: 4
+    _retreatSpeedMultiplier: 1.5
     _attackIntervalSeconds: 1
     _stopPadding: 1
     _attackReachPadding: 2
     _spawnOffset: 10
     _cameraSpawnDistance: 15
+    _healHealthFraction: 0.3
+    _healCooldownSeconds: 1.5
   _territoryConstants:
     _ringSizes:
     - {x: 100, y: 75}
@@ -80,8 +108,79 @@ MonoBehaviour:
     - {x: 400, y: 300}
     _gapHalfWidth: 15
     _wallThickness: 4
+    _wallHealth: 100
   _towerConstants:
-    _size: 16
-    _attackRange: 150
-    _attackRateFrames: 25
-    _damage: 15
+    _size: 32
+    _health: 40
+    _attackRange: 300
+    _attackRateFrames: 50
+    _damage: 1
+  _treeConstants:
+    _kinds:
+    - _health: 5
+      _hpDrop: 1
+      _manaDrop: 0
+      _respawnSeconds: 30
+      _countPerTerritory: 15
+    - _health: 5
+      _hpDrop: 0
+      _manaDrop: 3
+      _respawnSeconds: 30
+      _countPerTerritory: 15
+    - _health: 9
+      _hpDrop: 2
+      _manaDrop: 2
+      _respawnSeconds: 60
+      _countPerTerritory: 4
+    - _health: 12
+      _hpDrop: 3
+      _manaDrop: 3
+      _respawnSeconds: 120
+      _countPerTerritory: 2
+    _growthIntervalSeconds: 60
+    _size: 2.5
+    _clearRadius: 3
+    _statueClearance: 8
+    _minSpacing: 5
+    _placementInset: 8
+    _healSearchRange: 500
+    _monsterHealRadius: 40
+    _monsterHealTreeDamageFraction: 0.5
+  _trapConstants:
+    _cost: 5
+    _damage: 1
+    _maxDurability: 10
+    _radius: 4.5
+    _cooldownSeconds: 0.75
+    _slowFactor: 0.4
+    _slowDurationSeconds: 2
+  _guardConstants:
+    _damage: 1
+    _attackRange: 250
+    _attackIntervalSeconds: 1
+  _bossConstants:
+    _maxHealth: 20
+    _damage: 10
+    _attackIntervalSeconds: 1
+    _speed: 2.5
+    _attackRange: 40
+    _spawnDistance: 60
+    _summonRadius: 20
+    _escort:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 1
+    - 1
+    - 2
+    - 2
+    _phase1Summons:
+    - 0
+    - 0
+    _phase2Summons:
+    - 0
+    - 1
+    _phase3Summons:
+    - 1
+    - 2

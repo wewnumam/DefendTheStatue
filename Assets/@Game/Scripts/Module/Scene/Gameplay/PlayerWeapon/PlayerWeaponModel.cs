@@ -9,12 +9,12 @@ namespace ProjectTA.Module.PlayerWeapon
     /// </summary>
     public class PlayerWeaponModel : BaseModel
     {
-        /// <summary>Reference melee: 25 damage, everything within 60 units of the player.</summary>
-        public const float SwordDamage = 25f;
+        /// <summary>GDD §4: a sword swing does 1 damage.</summary>
+        public const float SwordDamage = 1f;
         public const float SwordRadius = 60f;
 
-        /// <summary>Reference arrow, including every clone-mode arrow.</summary>
-        public const float ArrowDamage = 10f;
+        /// <summary>GDD §4: a plain arrow (and every clone-mode arrow) does 1 damage.</summary>
+        public const float ArrowDamage = 1f;
 
         public EnumManager.WeaponKind Current { get; private set; } = EnumManager.WeaponKind.Sword;
         public bool IsWeaponLocked { get; private set; }

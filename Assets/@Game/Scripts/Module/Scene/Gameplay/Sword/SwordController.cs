@@ -10,8 +10,8 @@ namespace ProjectTA.Module.Sword
         /// <summary>Berserker's x3, mirrored off the bus. One whenever no skill is running.</summary>
         private float _damageMultiplier = 1f;
 
-        /// <summary>Reference swing cost. Without enough stamina the swing does not land at all.</summary>
-        private const float SwingStaminaCost = 8f;
+        /// <summary>GDD §4: a swing costs 1 stamina; without it the swing does not land at all.</summary>
+        private const float SwingStaminaCost = 1f;
 
         /// <summary>Mirrored from the player module, which owns the pool.</summary>
         private float _stamina;

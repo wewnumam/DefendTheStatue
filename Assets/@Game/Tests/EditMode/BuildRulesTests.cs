@@ -110,10 +110,34 @@ namespace ProjectTA.Tests.EditMode
         }
 
         [Test]
-        public void UpgradeLadder_LevelsOutsideOneThroughSevenAreRefused()
+        public void UpgradeLadder_LevelEightTakesTheBossKillOrAHundredFiftyKills()
         {
-            Assert.That(BuildRules.CanUpgradeToLevel(1, true, 3, true, 6, 100), Is.False);
-            Assert.That(BuildRules.CanUpgradeToLevel(8, true, 3, true, 6, 100), Is.False);
+            Assert.That(BuildRules.CanUpgradeToLevel(8, true, 3, true, 6, 149), Is.False);
+            Assert.That(BuildRules.CanUpgradeToLevel(8, true, 3, true, 6, 150), Is.True, "kill path");
+            Assert.That(BuildRules.CanUpgradeToLevel(8, true, 3, true, 6, 0, true), Is.True, "boss path");
+        }
+
+        [Test]
+        public void UpgradeLadder_LevelNineTakesTheBossKillOrTwoHundredKills()
+        {
+            Assert.That(BuildRules.CanUpgradeToLevel(9, true, 3, true, 6, 199), Is.False);
+            Assert.That(BuildRules.CanUpgradeToLevel(9, true, 3, true, 6, 200), Is.True);
+            Assert.That(BuildRules.CanUpgradeToLevel(9, true, 3, true, 6, 0, true), Is.True);
+        }
+
+        [Test]
+        public void UpgradeLadder_LevelTenDemandsTheBossAndTwoHundredFiftyKills()
+        {
+            Assert.That(BuildRules.CanUpgradeToLevel(10, true, 3, true, 6, 250, false), Is.False, "boss missing");
+            Assert.That(BuildRules.CanUpgradeToLevel(10, true, 3, true, 6, 249, true), Is.False, "kills missing");
+            Assert.That(BuildRules.CanUpgradeToLevel(10, true, 3, true, 6, 250, true), Is.True);
+        }
+
+        [Test]
+        public void UpgradeLadder_LevelsOutsideTwoThroughTenAreRefused()
+        {
+            Assert.That(BuildRules.CanUpgradeToLevel(1, true, 3, true, 6, 9999, true), Is.False);
+            Assert.That(BuildRules.CanUpgradeToLevel(11, true, 3, true, 6, 9999, true), Is.False);
         }
 
         [Test]
@@ -125,6 +149,28 @@ namespace ProjectTA.Tests.EditMode
             Assert.That(BuildRules.GetSpawnIntervalFrames(300f), Is.EqualTo(110));
             Assert.That(BuildRules.GetSpawnIntervalFrames(600f), Is.EqualTo(40));
             Assert.That(BuildRules.GetSpawnIntervalFrames(3600f), Is.EqualTo(40), "floored");
+        }
+        [Test]
+        public void SpawnMix_AddsRolesAsTheRunProgresses()
+        {
+            const float early = 60f;
+            const float middle = 300f;
+            const float late = 540f;
+
+            Assert.That(BuildRules.PickMonsterKind(early, 0.99f),
+                Is.EqualTo(Utility.EnumManager.MonsterKind.Stacker), "first four minutes are Stackers only");
+
+            Assert.That(BuildRules.PickMonsterKind(middle, 0.9f),
+                Is.EqualTo(Utility.EnumManager.MonsterKind.Waltroy));
+            Assert.That(BuildRules.PickMonsterKind(middle, 0.5f),
+                Is.EqualTo(Utility.EnumManager.MonsterKind.Stacker));
+
+            Assert.That(BuildRules.PickMonsterKind(late, 0.9f),
+                Is.EqualTo(Utility.EnumManager.MonsterKind.Deasor));
+            Assert.That(BuildRules.PickMonsterKind(late, 0.6f),
+                Is.EqualTo(Utility.EnumManager.MonsterKind.Waltroy));
+            Assert.That(BuildRules.PickMonsterKind(late, 0.1f),
+                Is.EqualTo(Utility.EnumManager.MonsterKind.Stacker));
         }
     }
 }

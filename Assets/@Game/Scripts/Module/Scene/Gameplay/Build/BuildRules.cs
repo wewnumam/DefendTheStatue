@@ -10,11 +10,13 @@ namespace ProjectTA.Module.Build
     /// </summary>
     public static class BuildRules
     {
-        public const int TowerCost = 200;
-        public const int WallSegmentCost = 125;
-        public const int SpikeTrapCost = 150;
-        public const int GuardCostLevel3 = 500;
-        public const int GuardCostLevel5 = 800;
+        // GDD §12 economy, in essence.
+        public const int TowerCost = 20;
+        public const int WallSegmentCost = 20;
+        public const int SpikeTrapCost = 5;
+        public const int GuardCostLevel3 = 20;
+        public const int GuardCostLevel5 = 25;
+        public const int GuardCostLevel10 = 30;
 
         /// <summary>Reference game: territory 0 needs statue level 2, territory 1 needs level 4.</summary>
         public static bool CanBuildTowerAt(int territoryIndex, int statueLevel)
@@ -44,14 +46,18 @@ namespace ProjectTA.Module.Build
             return territory.Index != 1 || innerTerritoryAllWallsBuilt;
         }
 
-        /// <summary>The reference game's upgrade ladder, expressed as the requirement for each level.</summary>
+        /// <summary>
+        /// GDD §5 upgrade ladder, one requirement per target level. Levels 8 and 9 accept either the
+        /// boss kill or the kill count; level 10 demands both.
+        /// </summary>
         public static bool CanUpgradeToLevel(
             int nextLevel,
             bool territory0AllWallsBuilt,
             int guardCountAtLevel3,
             bool territory1AllWallsBuilt,
             int guardCountAtLevel5,
-            int monstersKilled)
+            int monstersKilled,
+            bool bossDefeated = false)
         {
             switch (nextLevel)
             {
@@ -67,9 +73,43 @@ namespace ProjectTA.Module.Build
                     return guardCountAtLevel5 >= 6;
                 case 7:
                     return monstersKilled >= 100;
+                case 8:
+                    return bossDefeated || monstersKilled >= 150;
+                case 9:
+                    return bossDefeated || monstersKilled >= 200;
+                case 10:
+                    return bossDefeated && monstersKilled >= 250;
                 default:
                     return false;
             }
+        }
+
+        /// <summary>
+        /// GDD §2/§7 spawn mix: Stackers in the first four minutes, Waltroys join for the middle phase,
+        /// and every role is on the field after eight minutes. Roll is a 0..1 uniform.
+        /// </summary>
+        public static Utility.EnumManager.MonsterKind PickMonsterKind(float gameSeconds, float roll)
+        {
+            if (gameSeconds < 240f)
+            {
+                return Utility.EnumManager.MonsterKind.Stacker;
+            }
+
+            if (gameSeconds < 480f)
+            {
+                return roll < 0.75f
+                    ? Utility.EnumManager.MonsterKind.Stacker
+                    : Utility.EnumManager.MonsterKind.Waltroy;
+            }
+
+            if (roll < 0.5f)
+            {
+                return Utility.EnumManager.MonsterKind.Stacker;
+            }
+
+            return roll < 0.8f
+                ? Utility.EnumManager.MonsterKind.Waltroy
+                : Utility.EnumManager.MonsterKind.Deasor;
         }
 
         /// <summary>Reference game: max(40, 180 - minutes * 14) frames between spawns.</summary>

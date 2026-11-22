@@ -39,6 +39,15 @@ namespace ProjectTA.Module.PlayerCharacter
         private Vector2 _smoothedAim;
         private float _speedMultiplier = 1f;
 
+        /// <summary>GDD §4 skill 1: a dash is an impulse along the cursor, not a timed walk.</summary>
+        private Vector2 _dashVelocity;
+        private float _dashRemaining;
+
+        public bool IsDashing => _dashRemaining > 0f;
+
+        /// <summary>Where the cursor points this frame; the dash uses it as its heading.</summary>
+        public Vector2 AimDirection { get; private set; } = Vector2.down;
+
         private int _swordIdleStateHash;
         private int _swordAttackStateHash;
         private int _bowEmptyStateHash;
@@ -209,9 +218,29 @@ namespace ProjectTA.Module.PlayerCharacter
 
         private void MovePlayerCharacter()
         {
+            if (_dashRemaining > 0f)
+            {
+                _dashRemaining = Mathf.Max(0f, _dashRemaining - Time.fixedDeltaTime);
+                _rb.linearVelocity = _dashVelocity;
+                return;
+            }
+
             // Apply both horizontal and vertical velocity for 2D top-down movement
             Vector2 targetVelocity = _direction * (PlayerConstants.MovementSpeed * _speedMultiplier);
             _rb.linearVelocity = targetVelocity;
+        }
+
+        /// <summary>GDD §4 skill 1 (sword): dash toward the cursor for DashDurationSeconds.</summary>
+        public void StartDash(Vector2 direction)
+        {
+            if (PlayerConstants == null || direction.sqrMagnitude <= 0.0001f)
+            {
+                return;
+            }
+
+            _dashVelocity = direction.normalized * PlayerConstants.DashSpeed;
+            _dashRemaining = PlayerConstants.DashDurationSeconds;
+            _rb.linearVelocity = _dashVelocity;
         }
 
         /// <summary>Berserker's x3 walk speed. One, i.e. no effect, whenever no skill is running.</summary>
@@ -236,6 +265,7 @@ namespace ProjectTA.Module.PlayerCharacter
 
             if (aimDirection.sqrMagnitude > 0.01f)
             {
+                AimDirection = aimDirection;
                 RotatePlayerCharacter(aimDirection);
             }
         }
@@ -256,6 +286,18 @@ namespace ProjectTA.Module.PlayerCharacter
         public void SetDirection(Vector2 direction)
         {
             _direction = direction;
+        }
+
+        /// <summary>Respawn: snap the body (and its collider) to the statue and kill any carried speed.</summary>
+        public void Teleport(Vector2 position)
+        {
+            if (_rb != null)
+            {
+                _rb.position = position;
+                _rb.linearVelocity = Vector2.zero;
+            }
+
+            transform.position = position;
         }
 
         /// <summary>

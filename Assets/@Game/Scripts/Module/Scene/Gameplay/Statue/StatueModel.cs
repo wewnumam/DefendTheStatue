@@ -13,13 +13,15 @@ namespace ProjectTA.Module.Statue
             int unlockedTerritoryIndex,
             int guardFoundationLevel,
             EnumManager.SkillSlot unlockedSkill,
-            float maxHealthDelta)
+            float maxHealthDelta,
+            bool unlocksTeleport = false)
         {
             Level = level;
             UnlockedTerritoryIndex = unlockedTerritoryIndex;
             GuardFoundationLevel = guardFoundationLevel;
             UnlockedSkill = unlockedSkill;
             MaxHealthDelta = maxHealthDelta;
+            UnlocksTeleport = unlocksTeleport;
         }
 
         public int Level { get; }
@@ -28,31 +30,40 @@ namespace ProjectTA.Module.Statue
         public EnumManager.SkillSlot UnlockedSkill { get; }
         public float MaxHealthDelta { get; }
 
+        /// <summary>GDD §5/§11: level 8 opens the teleport pods.</summary>
+        public bool UnlocksTeleport { get; }
+
         public bool UnlocksTerritory => UnlockedTerritoryIndex >= 0;
         public bool SpawnsGuardFoundations => GuardFoundationLevel > 0;
         public bool UnlocksSkill => UnlockedSkill != EnumManager.SkillSlot.None;
     }
 
     /// <summary>
-    /// Statue health, level and the upgrade ladder. Numbers come straight from the reference
-    /// game: 200 base HP, +100 at level 6, +200 at level 7, upgrade cost 500 x level.
+    /// Statue health, level and the upgrade ladder, straight from GDD §5: ten levels, HP 50 with +10
+    /// per level (so level 10 is 140), and the published essence price for each target level.
     /// </summary>
     public class StatueModel : BaseModel
     {
-        public const int MaxLevel = 7;
+        public const int MaxLevel = 10;
         public const int MinLevel = 1;
-        public const float BaseMaxHealth = 200f;
-        public const int UpgradeCostPerLevel = 500;
+        public const float BaseMaxHealth = 50f;
+        public const float HealthPerLevel = 10f;
+
+        /// <summary>Indexed by target level, so UpgradeCosts[2] is the price of reaching level 2.</summary>
+        private static readonly int[] UpgradeCosts = { 0, 0, 20, 25, 40, 50, 60, 70, 90, 110, 140 };
 
         private static readonly StatueUpgradeEffect[] Effects =
         {
             new StatueUpgradeEffect(1, -1, 0, EnumManager.SkillSlot.None, 0f),
-            new StatueUpgradeEffect(2, 1, 0, EnumManager.SkillSlot.None, 0f),
-            new StatueUpgradeEffect(3, -1, 3, EnumManager.SkillSlot.Skill1, 0f),
-            new StatueUpgradeEffect(4, 2, 0, EnumManager.SkillSlot.None, 0f),
-            new StatueUpgradeEffect(5, -1, 5, EnumManager.SkillSlot.Skill2, 0f),
-            new StatueUpgradeEffect(6, -1, 0, EnumManager.SkillSlot.None, 100f),
-            new StatueUpgradeEffect(7, -1, 0, EnumManager.SkillSlot.Skill3, 200f)
+            new StatueUpgradeEffect(2, 1, 0, EnumManager.SkillSlot.None, HealthPerLevel),
+            new StatueUpgradeEffect(3, -1, 3, EnumManager.SkillSlot.Skill1, HealthPerLevel),
+            new StatueUpgradeEffect(4, 2, 0, EnumManager.SkillSlot.None, HealthPerLevel),
+            new StatueUpgradeEffect(5, -1, 5, EnumManager.SkillSlot.Skill2, HealthPerLevel),
+            new StatueUpgradeEffect(6, -1, 0, EnumManager.SkillSlot.None, HealthPerLevel),
+            new StatueUpgradeEffect(7, -1, 0, EnumManager.SkillSlot.Skill3, HealthPerLevel),
+            new StatueUpgradeEffect(8, -1, 0, EnumManager.SkillSlot.None, HealthPerLevel, true),
+            new StatueUpgradeEffect(9, -1, 0, EnumManager.SkillSlot.Skill4, HealthPerLevel),
+            new StatueUpgradeEffect(10, -1, 10, EnumManager.SkillSlot.None, HealthPerLevel)
         };
 
         public int Level { get; private set; } = MinLevel;
@@ -68,8 +79,9 @@ namespace ProjectTA.Module.Statue
         public bool IsMaxLevel => Level >= MaxLevel;
         public bool IsAlive => Health > 0f;
 
-        /// <summary>Reference game: cost = 500 * statue.level, charged before the level rises.</summary>
-        public int UpgradeCost => UpgradeCostPerLevel * Level;
+        /// <summary>GDD §5 price list: what the next level costs, charged before the level rises.</summary>
+        public int UpgradeCost =>
+            IsMaxLevel ? 0 : UpgradeCosts[Mathf.Clamp(Level + 1, MinLevel, MaxLevel)];
 
         public static StatueUpgradeEffect GetEffect(int level)
         {
@@ -86,9 +98,9 @@ namespace ProjectTA.Module.Statue
             SetDataAsDirty();
         }
 
-        public bool CanUpgrade(int gold)
+        public bool CanUpgrade(int essence)
         {
-            return !IsMaxLevel && gold >= UpgradeCost;
+            return !IsMaxLevel && essence >= UpgradeCost;
         }
 
         /// <summary>Raises the level and applies that level's health bump. Caller pays the cost.</summary>

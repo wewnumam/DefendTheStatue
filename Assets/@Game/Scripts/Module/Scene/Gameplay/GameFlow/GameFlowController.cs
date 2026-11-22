@@ -1,5 +1,6 @@
 using Agate.MVC.Base;
 using ProjectTA.Message;
+using ProjectTA.Module.Build;
 using ProjectTA.Module.GameConstants;
 using ProjectTA.Module.Territory;
 using UnityEngine;
@@ -29,6 +30,11 @@ namespace ProjectTA.Module.GameFlow
         private bool _isPaused;
         private bool _isSlowMotion;
 
+        /// <summary>-1 so the very first tick publishes 0:00; the HUD never has to guess.</summary>
+        private int _lastClockSecond = -1;
+        private bool _noSpawn;
+        private bool _fastForward;
+
         public void InitModel(IGameConstantsModel gameConstants)
         {
             if (gameConstants == null || gameConstants.GameConstants == null)
@@ -56,6 +62,7 @@ namespace ProjectTA.Module.GameFlow
             view.SetSpawnDistance(_monsterConstants.CameraSpawnDistance);
             _isPaused = false;
             _isSlowMotion = false;
+            _lastClockSecond = -1;
         }
 
         /// <summary>Escape toggles pause. Time scale 0 freezes FixedUpdate, so nothing else needs a flag.</summary>
@@ -101,10 +108,48 @@ namespace ProjectTA.Module.GameFlow
 
         private void OnTick(float deltaSeconds)
         {
-            int due = _model.Advance(deltaSeconds);
-            for (int i = 0; i < due; i++)
+            int due = _model.Advance(deltaSeconds * (_fastForward ? 2f : 1f));
+            for (int i = 0; i < due && !_noSpawn; i++)
             {
                 SpawnMonster();
+            }
+
+            int wholeSecond = Mathf.FloorToInt(_model.GameSeconds);
+            if (wholeSecond != _lastClockSecond)
+            {
+                _lastClockSecond = wholeSecond;
+                Publish(new RunClockMessage(wholeSecond));
+            }
+
+            // The ten-minute boss fires once; the boss module (4.2/4.3) consumes the message.
+            if (_model.TryTriggerBoss())
+            {
+                Publish(new BossSpawnedMessage());
+            }
+        }
+
+        // Player death is no longer a GameOver (GDD §4: -30 statue HP + respawn). The statue's
+        // death is the only defeat path, and it arrives as GameStateMessage(GameOver) from Statue.
+
+        public void OnCheatToggled(CheatToggledMessage message)
+        {
+            switch (message.Cheat)
+            {
+                case Utility.EnumManager.CheatType.NoSpawn:
+                    _noSpawn = message.Enabled;
+                    break;
+                case Utility.EnumManager.CheatType.FastForward:
+                    _fastForward = message.Enabled;
+                    break;
+            }
+        }
+
+        public void OnBossDefeated(BossDefeatedMessage message)
+        {
+            if (_model.MarkVictory())
+            {
+                _view?.SetTimeScale(0f);
+                Publish(new GameStateMessage(Utility.EnumManager.GameState.GameWin));
             }
         }
 
@@ -131,7 +176,8 @@ namespace ProjectTA.Module.GameFlow
 
             // Reference spawns always land outside the statue heal radius, so the tougher, richer
             // variant never appears from this path. The flag stays in the message for the boss pass.
-            Publish(new RequestSpawnMonsterMessage(position, false));
+            Utility.EnumManager.MonsterKind kind = BuildRules.PickMonsterKind(_model.GameSeconds, UnityEngine.Random.value);
+            Publish(new RequestSpawnMonsterMessage(position, false, kind));
         }
 
         public void OnWallSegmentBuilt(WallSegmentBuiltMessage message)
@@ -172,7 +218,12 @@ namespace ProjectTA.Module.GameFlow
 
         public void OnMonsterKilled(MonsterKilledMessage message)
         {
-            _model.RegisterMonsterKilled(message.GoldValue);
+            _model.RegisterMonsterKilled(message.EssenceValue);
+        }
+
+        public void OnTreeChopped(TreeChoppedMessage message)
+        {
+            _model.RegisterTreeChopped();
         }
 
         /// <summary>
@@ -185,6 +236,20 @@ namespace ProjectTA.Module.GameFlow
             if (message.GameState == Utility.EnumManager.GameState.GameOver)
             {
                 _model.MarkDefeat();
+                _isPaused = false;
+                _isSlowMotion = false;
+
+                if (_view != null)
+                {
+                    _view.SetTimeScale(0f);
+                }
+
+                return;
+            }
+
+            if (message.GameState == Utility.EnumManager.GameState.GameWin)
+            {
+                _model.MarkVictory();
                 _isPaused = false;
                 _isSlowMotion = false;
 
@@ -210,6 +275,7 @@ namespace ProjectTA.Module.GameFlow
             _outermostWallIndex = -1;
             _isPaused = false;
             _isSlowMotion = false;
+            _lastClockSecond = -1;
 
             if (_view != null)
             {

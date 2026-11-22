@@ -17,10 +17,28 @@ namespace ProjectTA.Module.BulletPool
         /// </summary>
         private int _arrows;
         private bool _arrowFree;
+        private bool _infiniteArrows;
         private float _stamina;
 
-        /// <summary>Reference: every normal arrow costs 3 stamina, and no shot lands below that.</summary>
-        private const float ArrowStaminaCost = 3f;
+        /// <summary>GDD §4: every normal arrow costs 1 stamina, and no shot lands below that.</summary>
+        private const float ArrowStaminaCost = 1f;
+
+        /// <summary>GDD §13 bow skill 1: three arrows, 4 damage each, fanned 15 degrees apart.</summary>
+        private const float TripleShotDamage = 4f;
+        private const float TripleShotSpreadDegrees = 15f;
+
+        /// <summary>GDD §13 bow skill 3: clone mode fires two extra arrows for 2 damage each.</summary>
+        private const float CloneArrowDamage = 2f;
+        private const float CloneArrowSpreadDegrees = 10f;
+
+        /// <summary>GDD §13 bow skill 2: lock-on doubles the next arrow and aims it at the nearest enemy.</summary>
+        private const float LockOnDamageMultiplier = 2f;
+        private const float LockOnRange = 600f;
+
+        private bool _cloneActive;
+        private bool _lockOnPending;
+        private bool _lockOnFound;
+        private Vector2 _lockOnTarget;
 
         public void OnSkillMultipliers(SkillMultipliersMessage message)
         {
@@ -40,6 +58,57 @@ namespace ProjectTA.Module.BulletPool
                 && message.Weapon == Utility.EnumManager.WeaponKind.Bow)
             {
                 _arrowFree = message.Active;
+                _cloneActive = message.Active;
+            }
+        }
+
+        /// <summary>Bow skills that change how the next shots leave the bow.</summary>
+        public void OnSkillCast(SkillCastMessage message)
+        {
+            if (message.Weapon != Utility.EnumManager.WeaponKind.Bow)
+            {
+                return;
+            }
+
+            switch (message.Slot)
+            {
+                case Utility.EnumManager.SkillSlot.Skill1:
+                    FireTripleShot();
+                    break;
+                case Utility.EnumManager.SkillSlot.Skill2:
+                    _lockOnPending = true;
+                    Publish(new RequestLockOnTargetMessage(_view.BulletSpawnPoint.position, LockOnRange));
+                    break;
+            }
+        }
+
+        public void OnLockOnTarget(LockOnTargetMessage message)
+        {
+            _lockOnFound = message.Found;
+            _lockOnTarget = message.Position;
+        }
+
+        /// <summary>GDD §13: three arrows at 4 damage, one stamina and one arrow for the burst.</summary>
+        private void FireTripleShot()
+        {
+            if (_stamina < ArrowStaminaCost || !HasArrow())
+            {
+                _lockOnPending = false;
+                return;
+            }
+
+            for (int i = -1; i <= 1; i++)
+            {
+                SpawnBullet(TripleShotDamage, i * TripleShotSpreadDegrees);
+            }
+
+            _stamina -= ArrowStaminaCost;
+            Publish(new RequestSpendStaminaMessage(ArrowStaminaCost));
+
+            if (!_arrowFree)
+            {
+                _arrows--;
+                Publish(new RequestSpendArrowsMessage(1));
             }
         }
 
@@ -80,7 +149,7 @@ namespace ProjectTA.Module.BulletPool
         {
             if (_model.CanShoot() && HasArrow() && _stamina >= ArrowStaminaCost)
             {
-                SpawnBullet();
+                FireNormalShot();
                 _model.ResetCountdown();
 
                 // The mirror drops at once so a burst cannot outshoot the ammo; the player module's
@@ -97,10 +166,66 @@ namespace ProjectTA.Module.BulletPool
             _model.DecreaseCountdown(deltaTime);
         }
 
+        /// <summary>
+        /// One attack: a plain arrow, three when clone mode is up, or a locked-on arrow aimed at the enemy
+        /// bow skill 2 picked.
+        /// </summary>
+        private void FireNormalShot()
+        {
+            float damage = ProjectTA.Module.PlayerWeapon.PlayerWeaponModel.ArrowDamage * _damageMultiplier;
+
+            if (_cloneActive)
+            {
+                damage = CloneArrowDamage * _damageMultiplier;
+            }
+
+            if (_lockOnPending)
+            {
+                _lockOnPending = false;
+                if (_lockOnFound)
+                {
+                    AimAtLockedTarget(damage * LockOnDamageMultiplier);
+                    return;
+                }
+            }
+
+            SpawnBullet(damage);
+
+            if (_cloneActive)
+            {
+                SpawnBullet(CloneArrowDamage * _damageMultiplier, -CloneArrowSpreadDegrees);
+                SpawnBullet(CloneArrowDamage * _damageMultiplier, CloneArrowSpreadDegrees);
+            }
+        }
+
+        /// <summary>Lock-on skips the cursor: the arrow leaves along the line to the locked enemy.</summary>
+        private void AimAtLockedTarget(float damage)
+        {
+            Transform spawn = _view.BulletSpawnPoint;
+            Vector2 direction = _lockOnTarget - (Vector2)spawn.position;
+            if (direction.sqrMagnitude <= 0.0001f)
+            {
+                SpawnBullet(damage);
+                return;
+            }
+
+            // The prefab flies along -up, so point +up opposite the target.
+            Quaternion rotation = Quaternion.FromToRotation(Vector3.up, (Vector3)(-direction.normalized));
+            SpawnBulletAt(damage, rotation);
+        }
+
         /// <summary>Reference canShootArrow(): clone mode is the only bypass here; the admin cheat is not wired yet.</summary>
         private bool HasArrow()
         {
-            return _arrowFree || _arrows > 0;
+            return _infiniteArrows || _arrowFree || _arrows > 0;
+        }
+
+        public void OnCheatToggled(CheatToggledMessage message)
+        {
+            if (message.Cheat == Utility.EnumManager.CheatType.InfiniteArrows)
+            {
+                _infiniteArrows = message.Enabled;
+            }
         }
 
         /// <summary>
@@ -139,26 +264,32 @@ namespace ProjectTA.Module.BulletPool
         }
 
 
-        private void SpawnBullet(float damageOverride = -1f)
+        private void SpawnBullet(float damageOverride = -1f, float angleOffsetDegrees = 0f)
+        {
+            Transform spawn = _view.BulletSpawnPoint;
+            Quaternion rotation = spawn.rotation * Quaternion.Euler(0f, 0f, angleOffsetDegrees);
+            SpawnBulletAt(damageOverride, rotation);
+        }
+
+        private void SpawnBulletAt(float damageOverride, Quaternion rotation)
         {
             GameObject bullet = _model.GetPooledBullet();
-            if (bullet != null)
+            if (bullet == null)
             {
-                // Damage is stamped per spawn: the multiplier can change between two arrows of one burst.
-                if (bullet.TryGetComponent<BulletView>(out var bulletView))
-                {
-                    bulletView.Damage = damageOverride > 0f
-                        ? damageOverride
-                        : ProjectTA.Module.PlayerWeapon.PlayerWeaponModel.ArrowDamage * _damageMultiplier;
-                }
-
-                bullet.transform.SetParent(null);
-                bullet.transform.SetPositionAndRotation(
-                    _view.BulletSpawnPoint.position,
-                    _view.BulletSpawnPoint.rotation
-                );
-                bullet.SetActive(true);
+                return;
             }
+
+            // Damage is stamped per spawn: the multiplier can change between two arrows of one burst.
+            if (bullet.TryGetComponent<BulletView>(out var bulletView))
+            {
+                bulletView.Damage = damageOverride > 0f
+                    ? damageOverride
+                    : ProjectTA.Module.PlayerWeapon.PlayerWeaponModel.ArrowDamage * _damageMultiplier;
+            }
+
+            bullet.transform.SetParent(null);
+            bullet.transform.SetPositionAndRotation(_view.BulletSpawnPoint.position, rotation);
+            bullet.SetActive(true);
         }
 
         public void OnShootStart(PlayerCharacterShootStartMessage message)

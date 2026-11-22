@@ -13,7 +13,7 @@ namespace ProjectTA.Message
         public float Amount { get; }
     }
 
-    /// <summary>The player asked for the next statue level. Refused when gold or gates say no.</summary>
+    /// <summary>The player asked for the next statue level. Refused when essence or gates say no.</summary>
     public struct RequestUpgradeStatueMessage
     {
     }
@@ -34,16 +34,16 @@ namespace ProjectTA.Message
 
     public struct StatueUpgradedMessage
     {
-        public StatueUpgradedMessage(int level, StatueUpgradeEffect effect, int goldSpent)
+        public StatueUpgradedMessage(int level, StatueUpgradeEffect effect, int essenceSpent)
         {
             Level = level;
             Effect = effect;
-            GoldSpent = goldSpent;
+            EssenceSpent = essenceSpent;
         }
 
         public int Level { get; }
         public StatueUpgradeEffect Effect { get; }
-        public int GoldSpent { get; }
+        public int EssenceSpent { get; }
     }
 
     /// <summary>Statue health hit zero: the run is over.</summary>

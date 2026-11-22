@@ -13,7 +13,7 @@ namespace ProjectTA.Module.PlayerSkill
     public class PlayerSkillController : ObjectController<PlayerSkillController, PlayerSkillModel, PlayerSkillView>
     {
         private const int WeaponCount = 2;
-        private const int SlotCount = 3;
+        private const int SlotCount = 4;
 
         /// <summary>Mirrors of the player module's state: read from messages, never reached for directly.</summary>
         private EnumManager.WeaponKind _weapon = EnumManager.WeaponKind.Sword;
@@ -24,6 +24,7 @@ namespace ProjectTA.Module.PlayerSkill
 
         /// <summary>Owned here so E over the god statue and Tab cannot disagree about the panel state.</summary>
         private bool _isUpgradePanelOpen;
+        private bool _noCooldown;
 
         private Transform _player;
 
@@ -96,7 +97,7 @@ namespace ProjectTA.Module.PlayerSkill
 
         private void OnCastRequested(EnumManager.SkillSlot slot)
         {
-            if (!_model.CanCast(_weapon, slot, _mana, false))
+            if (!_model.CanCast(_weapon, slot, _mana, _noCooldown))
             {
                 return;
             }
@@ -116,6 +117,29 @@ namespace ProjectTA.Module.PlayerSkill
 
             // Berserker and clone mode change speed, damage and fire rate the moment they start.
             PublishMultipliers();
+
+            // GDD §13 skill 4: sword mind-controls, bow empowers guards. Both are radius effects on the caster.
+            if (slot == EnumManager.SkillSlot.Skill4 && _player != null)
+            {
+                PlayerSkillConstants constants = _model.SkillConstants;
+                if (_weapon == EnumManager.WeaponKind.Sword)
+                {
+                    Publish(new MindControlMessage(
+                        _player.position,
+                        constants.MindControlRadius,
+                        constants.Skill4DurationSeconds,
+                        constants.MindControlDamageMultiplier));
+                }
+                else
+                {
+                    Publish(new GuardEmpowerMessage(
+                        _player.position,
+                        constants.GuardEmpowerRadius,
+                        constants.GuardEmpowerDamageMultiplier,
+                        constants.GuardEmpowerAttackSpeedMultiplier,
+                        constants.Skill4DurationSeconds));
+                }
+            }
 
             // Sword 2 is the time slash: one slow disc on the caster. Its expiry drives the model timer.
             if (_weapon == EnumManager.WeaponKind.Sword
@@ -209,6 +233,14 @@ namespace ProjectTA.Module.PlayerSkill
 
             // Which weapon is in hand decides whether a running skill3 means x3 melee or x2 fire rate.
             PublishMultipliers();
+        }
+
+        public void OnCheatToggled(CheatToggledMessage message)
+        {
+            if (message.Cheat == EnumManager.CheatType.NoCooldown)
+            {
+                _noCooldown = message.Enabled;
+            }
         }
 
         public void OnPlayerStatsChanged(PlayerStatsChangedMessage message)

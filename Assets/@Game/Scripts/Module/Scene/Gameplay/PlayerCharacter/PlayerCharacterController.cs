@@ -12,15 +12,22 @@ namespace ProjectTA.Module.PlayerCharacter
         /// <summary>Statue heal radius, in the same world units the statue view is drawn in.</summary>
         private const float HealRadius = 120f;
 
-        /// <summary>Reference: the bow's charged shot costs 15 stamina, one arrow and lands 50 flat.</summary>
-        private const float ChargedShotStaminaCost = 15f;
-        private const float ChargedShotDamage = 50f;
+        /// <summary>GDD §4: the bow's charged shot costs 2 stamina, one arrow and lands 2.</summary>
+        private const float ChargedShotStaminaCost = 2f;
+        private const float ChargedShotDamage = 2f;
+
+        /// <summary>GDD §4 skill 1 (sword): the dash body-checks for 2, once per monster per dash.</summary>
+        private const float DashDamage = 2f;
+        private const float DashHitRadius = 25f;
 
         /// <summary>Weapon in hand, mirrored from the skill module's resolved switch.</summary>
         private EnumManager.WeaponKind _weapon = EnumManager.WeaponKind.Sword;
 
         private bool _isBlocking;
         private bool _isCharging;
+
+        /// <summary>GDD §5: an enemy inside the heal radius switches the statue's regeneration off.</summary>
+        private bool _healZoneTainted;
 
         public void InitModel(IGameConstantsModel gameConstants, IGameSettingsModel gameSettings)
         {
@@ -47,7 +54,7 @@ namespace ProjectTA.Module.PlayerCharacter
         private void OnTick(float deltaTime)
         {
             bool isInHealRadius = _view.transform.position.sqrMagnitude <= HealRadius * HealRadius;
-            _model.Tick(deltaTime, _isBlocking, _isCharging, false, isInHealRadius);
+            _model.Tick(deltaTime, _isBlocking, _isCharging, false, isInHealRadius && !_healZoneTainted);
 
             // Reference: falling to zero stamina drops the block by itself.
             if (_isBlocking && _model.Stamina <= 0f)
@@ -56,6 +63,13 @@ namespace ProjectTA.Module.PlayerCharacter
             }
 
             _view.SetArrowState(_model.IsInfiniteArrows || _model.Arrows > 0);
+
+            // Dash contact damage: the pool hits each monster once per dash (see the reset on cast).
+            if (_view.IsDashing)
+            {
+                Vector2 position = _view.transform.position;
+                Publish(new RequestAreaDamageMessage(position, DashHitRadius, DashDamage, position, true));
+            }
 
             PublishStatsChanged();
         }
@@ -117,6 +131,52 @@ namespace ProjectTA.Module.PlayerCharacter
 
             // Firing is the bullet pool's job; it stamps this flat damage on the next arrow it spawns.
             Publish(new RequestHeavyShotMessage(ChargedShotDamage));
+        }
+
+        /// <summary>Dev cheats: only the three that change player stats are consumed here.</summary>
+        public void OnCheatToggled(CheatToggledMessage message)
+        {
+            switch (message.Cheat)
+            {
+                case EnumManager.CheatType.GodMode:
+                    _model.SetGodMode(message.Enabled);
+                    break;
+                case EnumManager.CheatType.InfiniteStamina:
+                    _model.SetInfiniteStamina(message.Enabled);
+                    break;
+                case EnumManager.CheatType.InfiniteArrows:
+                    _model.SetInfiniteArrows(message.Enabled);
+                    break;
+                case EnumManager.CheatType.InfiniteEssence:
+                    _model.SetInfiniteEssence(message.Enabled);
+                    break;
+            }
+
+            PublishStatsChanged();
+        }
+
+        public void OnRequestManaGain(RequestManaGainMessage message)
+        {
+            _model.AddMana(message.Amount);
+            PublishStatsChanged();
+        }
+
+        public void OnDevAddEssence(DevAddEssenceMessage message)
+        {
+            _model.AddEssence(message.Amount);
+            PublishStatsChanged();
+        }
+
+        public void OnDevAddMana(DevAddManaMessage message)
+        {
+            _model.AddMana(message.Amount);
+            PublishStatsChanged();
+        }
+
+        public void OnDevHealPlayer(DevHealPlayerMessage message)
+        {
+            _model.Heal(_model.MaxHealth);
+            PublishStatsChanged();
         }
 
         private bool CanShootArrow()
@@ -210,12 +270,20 @@ namespace ProjectTA.Module.PlayerCharacter
             {
                 PublishStatsChanged();
             }
+
+            if (message.Weapon == EnumManager.WeaponKind.Sword
+                && message.Slot == EnumManager.SkillSlot.Skill1
+                && _view != null)
+            {
+                _view.StartDash(_view.AimDirection);
+                Publish(new RequestResetDashHitsMessage());
+            }
         }
 
-        /// <summary>Gold has one owner: builders and the statue post a bill, this pays it.</summary>
-        public void OnRequestSpendGold(RequestSpendGoldMessage message)
+        /// <summary>Essence has one owner: builders and the statue post a bill, this pays it.</summary>
+        public void OnRequestSpendEssence(RequestSpendEssenceMessage message)
         {
-            if (_model.TrySpendGold(message.Amount))
+            if (_model.TrySpendEssence(message.Amount))
             {
                 PublishStatsChanged();
             }
@@ -243,12 +311,47 @@ namespace ProjectTA.Module.PlayerCharacter
         }
 
         /// <summary>
-        /// A kill pays out here rather than in the monster module, so gold keeps a single owner.
-        /// The model already has the gold field; this only routes the message into it.
+        /// A kill pays out here rather than in the monster module, so essence keeps a single owner.
+        /// The model already has the essence field; this only routes the message into it.
         /// </summary>
         public void OnMonsterKilled(MonsterKilledMessage message)
         {
-            _model.AddGold(message.GoldValue);
+            _model.AddEssence(message.EssenceValue);
+            _model.RegisterKill();
+            PublishStatsChanged();
+        }
+
+        /// <summary>GDD §11: a teleport moves the pawn instantly; walls and monsters never block it.</summary>
+        public void OnTeleportPerformed(TeleportPerformedMessage message)
+        {
+            _view?.Teleport(message.Destination);
+        }
+
+        public void OnHealZoneTaint(HealZoneTaintMessage message)
+        {
+            _healZoneTainted = message.Tainted;
+        }
+
+        /// <summary>
+        /// GDD §4: dying is not a game over. It costs the statue 30 HP and puts the player back at the
+        /// statue with 3 s of invincibility, so a death spiral still ends the run but a mistake does not.
+        /// </summary>
+        public void OnRequestPlayerDamage(RequestPlayerDamageMessage message)
+        {
+            if (!_model.ApplyDamage(message.Amount) || _model.IsAlive)
+            {
+                PublishStatsChanged();
+                return;
+            }
+
+            if (_view != null)
+            {
+                _view.Teleport(Vector2.zero);
+            }
+
+            Publish(new PlayerDiedMessage());
+            Publish(new RequestStatueDamageMessage(PlayerCharacterModel.DeathStatuePenalty));
+            _model.Respawn();
             PublishStatsChanged();
         }
 
@@ -261,7 +364,7 @@ namespace ProjectTA.Module.PlayerCharacter
                 _model.MaxStamina,
                 _model.Mana,
                 _model.MaxMana,
-                _model.Gold,
+                _model.Essence,
                 _model.Arrows));
         }
     }

@@ -12,16 +12,25 @@ using ProjectTA.Module.GameConstants;
 using ProjectTA.Module.SaveSystem;
 using ProjectTA.Module.BulletPool;
 using ProjectTA.Module.Sword;
+using ProjectTA.Module.Boss;
+using ProjectTA.Module.BalanceLog;
+using ProjectTA.Module.CameraRig;
+using ProjectTA.Module.DevConsole;
 using ProjectTA.Module.GameFlow;
+using ProjectTA.Module.Guard;
 using ProjectTA.Module.GameStateUi;
 using ProjectTA.Module.Monster;
 using ProjectTA.Module.Statue;
 using ProjectTA.Module.Territory;
 using ProjectTA.Module.Build;
 using ProjectTA.Module.Tower;
+using ProjectTA.Module.Trap;
+using ProjectTA.Module.Tree;
 using ProjectTA.Module.PlayerSkill;
 using ProjectTA.Module.Hud;
 using ProjectTA.Module.SlowField;
+using ProjectTA.Module.Teleport;
+using ProjectTA.Module.AdaptiveAi;
 using System.Collections;
 using UnityEngine.SceneManagement;
 namespace ProjectTA.Scene.Gameplay
@@ -44,10 +53,18 @@ namespace ProjectTA.Scene.Gameplay
         private readonly TerritoryController _territory = new();
         private readonly BuildController _build = new();
         private readonly TowerController _tower = new();
+        private readonly TreeController _tree = new();
+        private readonly TrapController _trap = new();
+        private readonly GuardController _guard = new();
+        private readonly BossController _boss = new();
+        private readonly DevConsoleController _devConsole = new();
+        private readonly CameraRigController _cameraRig = new();
         private readonly PlayerSkillController _playerSkill = new();
         private readonly HudController _hud = new();
         private readonly SlowFieldController _slowField = new();
         private readonly GameStateUiController _gameStateUi = new();
+        private readonly TeleportController _teleport = new();
+        private readonly AdaptiveAiController _adaptiveAi = new();
 
         protected override IController[] GetSceneDependencies()
         {
@@ -64,10 +81,18 @@ namespace ProjectTA.Scene.Gameplay
                 new TerritoryController(),
                 new BuildController(),
                 new TowerController(),
+                new TreeController(),
+                new TrapController(),
+                new GuardController(),
+                new BossController(),
+                new DevConsoleController(),
+                new CameraRigController(),
                 new PlayerSkillController(),
                 new HudController(),
                 new SlowFieldController(),
-                new GameStateUiController()
+                new GameStateUiController(),
+                new TeleportController(),
+                new AdaptiveAiController()
             };
         }
 
@@ -83,10 +108,18 @@ namespace ProjectTA.Scene.Gameplay
                 new TerritoryConnector(),
                 new BuildConnector(),
                 new TowerConnector(),
+                new TreeConnector(),
+                new TrapConnector(),
+                new GuardConnector(),
+                new BossConnector(),
+                new BalanceLogConnector(),
+                new CameraRigConnector(),
                 new PlayerSkillConnector(),
                 new HudConnector(),
                 new SlowFieldConnector(),
-                new GameStateUiConnector()
+                new GameStateUiConnector(),
+                new TeleportConnector(),
+                new AdaptiveAiConnector()
             };
         }
 
@@ -129,9 +162,28 @@ namespace ProjectTA.Scene.Gameplay
             _build.SetView(_view.BuildView);
             _tower.InitModel(_gameConstants.Model);
             _tower.SetView(_view.TowerView);
+            _tree.InitModel(_gameConstants.Model);
+            _tree.SetView(_view.TreeView);
+            _trap.InitModel(_gameConstants.Model);
+            _trap.SetView(_view.TrapView);
+            _guard.InitModel(_gameConstants.Model);
+            _guard.SetView(_view.GuardView);
+            _boss.InitModel(_gameConstants.Model);
+            _boss.SetView(_view.BossView);
+            _devConsole.InitModel(_gameConstants.Model);
+            _devConsole.SetView(_view.DevConsoleView);
+            _cameraRig.SetView(_view.CameraRigView);
+            _cameraRig.SetFollowTarget(_view.PlayerCharacterView.transform);
+            _boss.SetStatuePosition(_view.GameFlowView.StatuePosition);
             _playerSkill.InitModel(_gameConstants.Model);
             _playerSkill.SetView(_view.PlayerSkillView);
             _playerSkill.SetPlayerTransform(_view.PlayerCharacterView.transform);
+            _monsterPool.SetPlayerTransform(_view.PlayerCharacterView.transform);
+            _teleport.InitModel(_gameConstants.Model);
+            _teleport.SetView(_view.TeleportView);
+            _teleport.SetPlayerTransform(_view.PlayerCharacterView.transform);
+            _adaptiveAi.SetPlayerTransform(_view.PlayerCharacterView.transform);
+            _hud.InitModel(_gameConstants.Model);
             _hud.SetView(_view.HudView);
             _slowField.SetView(_view.SlowFieldView);
             _gameStateUi.SetView(_view.GameStateUiView);

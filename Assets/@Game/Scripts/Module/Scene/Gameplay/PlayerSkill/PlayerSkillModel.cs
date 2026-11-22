@@ -15,7 +15,7 @@ namespace ProjectTA.Module.PlayerSkill
         public int StatueLevel { get; private set; } = 1;
 
         private const int WeaponCount = 2;
-        private const int SlotCount = 3;
+        private const int SlotCount = 4;
 
         private readonly float[,] _cooldowns = new float[WeaponCount, SlotCount];
         private readonly float[,] _effectTimers = new float[WeaponCount, SlotCount];
@@ -30,7 +30,7 @@ namespace ProjectTA.Module.PlayerSkill
 
         public void SetStatueLevel(int level)
         {
-            StatueLevel = Mathf.Clamp(level, 1, 7);
+            StatueLevel = Mathf.Clamp(level, 1, 10);
             SetDataAsDirty();
         }
 
@@ -92,6 +92,8 @@ namespace ProjectTA.Module.PlayerSkill
                     return SkillConstants.Skill2RequiredStatueLevel;
                 case EnumManager.SkillSlot.Skill3:
                     return SkillConstants.Skill3RequiredStatueLevel;
+                case EnumManager.SkillSlot.Skill4:
+                    return SkillConstants.Skill4RequiredStatueLevel;
                 default:
                     return int.MaxValue;
             }
@@ -117,6 +119,8 @@ namespace ProjectTA.Module.PlayerSkill
                     return SkillConstants.Skill2ManaCost;
                 case EnumManager.SkillSlot.Skill3:
                     return SkillConstants.Skill3ManaCost;
+                case EnumManager.SkillSlot.Skill4:
+                    return SkillConstants.Skill4ManaCost;
                 default:
                     return 0f;
             }
@@ -137,6 +141,8 @@ namespace ProjectTA.Module.PlayerSkill
                     return SkillConstants.Skill2CooldownSeconds;
                 case EnumManager.SkillSlot.Skill3:
                     return SkillConstants.Skill3CooldownSeconds;
+                case EnumManager.SkillSlot.Skill4:
+                    return SkillConstants.Skill4CooldownSeconds;
                 default:
                     return 0f;
             }
@@ -224,6 +230,7 @@ namespace ProjectTA.Module.PlayerSkill
                 case EnumManager.SkillSlot.Skill2:
                     return weapon == EnumManager.WeaponKind.Bow && !noCooldown;
                 case EnumManager.SkillSlot.Skill3:
+                case EnumManager.SkillSlot.Skill4:
                     return true;
                 default:
                     return false;
@@ -323,6 +330,8 @@ namespace ProjectTA.Module.PlayerSkill
                         : SkillConstants.LockShootDurationSeconds;
                 case EnumManager.SkillSlot.Skill3:
                     return SkillConstants.Skill3DurationSeconds;
+                case EnumManager.SkillSlot.Skill4:
+                    return SkillConstants.Skill4DurationSeconds;
                 default:
                     return 0f;
             }
