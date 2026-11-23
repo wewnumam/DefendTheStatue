@@ -1,6 +1,7 @@
 using Agate.MVC.Base;
 using ProjectTA.Boot;
 using ProjectTA.Message;
+using ProjectTA.Module.GameConstants;
 using ProjectTA.Utility;
 
 namespace ProjectTA.Module.GameStateUi
@@ -13,11 +14,37 @@ namespace ProjectTA.Module.GameStateUi
     public class GameStateUiController : ObjectController<GameStateUiController, GameStateUiModel, GameStateUiView>
     {
         /// <summary>Restart is a scene reload: every model resets for free and no module needs a ResetMessage.</summary>
+        private PlayerSkillConstants _skills;
+        private bool _upgradePanelOpen;
+
+        /// <summary>Handed over by the launcher so the overlay can print the eight skill rows.</summary>
+        public void SetSkillConstants(PlayerSkillConstants skills)
+        {
+            _skills = skills;
+        }
+
         public override void SetView(GameStateUiView view)
         {
             base.SetView(view);
             _model.Reset();
             view.SetRestartCallback(OnRestart);
+            view.SetUpgradeCallbacks(OnUpgradeStatue, OnCloseUpgradePanel);
+        }
+
+        /// <summary>GDD §5: the only thing the upgrade overlay can buy is the next statue level.</summary>
+        private void OnUpgradeStatue()
+        {
+            Publish(new RequestUpgradeStatueMessage());
+        }
+
+        private void OnCloseUpgradePanel()
+        {
+            Publish(new RequestToggleSkillUpgradePanelMessage());
+        }
+
+        private void RefreshUpgradePanel()
+        {
+            _view.ShowUpgradePanel(_skills, _model.StatueLevel, _model.Essence);
         }
 
         private void OnRestart()
@@ -65,11 +92,21 @@ namespace ProjectTA.Module.GameStateUi
         {
             _model.SetEssence(message.Essence);
             _model.SetMaxMana(message.MaxMana);
+
+            if (_upgradePanelOpen)
+            {
+                RefreshUpgradePanel();
+            }
         }
 
         public void OnStatueUpgraded(StatueUpgradedMessage message)
         {
             _model.SetStatueLevel(message.Level);
+
+            if (_upgradePanelOpen)
+            {
+                RefreshUpgradePanel();
+            }
         }
 
         public void OnGameState(GameStateMessage message)
@@ -97,6 +134,7 @@ namespace ProjectTA.Module.GameStateUi
 
                 case EnumManager.GameState.Playing:
                     _model.Reset();
+                    _upgradePanelOpen = false;
                     _view.HideAll();
                     break;
 
@@ -123,7 +161,13 @@ namespace ProjectTA.Module.GameStateUi
                 return;
             }
 
+            _upgradePanelOpen = message.IsOpen;
             _view.SetUpgradeSkill(message.IsOpen);
+
+            if (message.IsOpen)
+            {
+                RefreshUpgradePanel();
+            }
         }
     }
 }

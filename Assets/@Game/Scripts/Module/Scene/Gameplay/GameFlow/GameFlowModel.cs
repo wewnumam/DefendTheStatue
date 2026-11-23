@@ -6,16 +6,22 @@ using UnityEngine;
 namespace ProjectTA.Module.GameFlow
 {
     /// <summary>
-    /// Run clock, spawn cadence, kill tally and the defeat flag. Endless survival only: the boss
-    /// and the victory branch stay out of the core scope.
+    /// Run clock, spawn cadence, kill tally and the run's outcome. The boss arrives once at ten
+    /// minutes; defeat lands when the statue or the player dies, victory when the boss dies.
     /// </summary>
     public class GameFlowModel : BaseModel
     {
+        /// <summary>Reference game: the boss arrives at the ten-minute mark.</summary>
+        public const float BossTriggerSeconds = 600f;
+
         public float GameSeconds { get; private set; }
         public int MonstersKilled { get; private set; }
         public int TreesChopped { get; private set; }
         public bool IsDefeat { get; private set; }
         public bool IsVictory { get; private set; }
+        public bool HasBossSpawned { get; private set; }
+
+        public bool IsRunOver => IsDefeat || IsVictory;
 
         private float _spawnAccumulator;
 
@@ -30,6 +36,7 @@ namespace ProjectTA.Module.GameFlow
             TreesChopped = 0;
             IsDefeat = false;
             IsVictory = false;
+            HasBossSpawned = false;
             _spawnAccumulator = 0f;
             SetDataAsDirty();
         }
@@ -64,7 +71,7 @@ namespace ProjectTA.Module.GameFlow
             return spawns;
         }
 
-        public void RegisterMonsterKilled(int goldValue)
+        public void RegisterMonsterKilled(int essenceValue)
         {
             MonstersKilled++;
             SetDataAsDirty();
@@ -87,10 +94,42 @@ namespace ProjectTA.Module.GameFlow
             SetDataAsDirty();
         }
 
-        public void MarkVictory()
+        /// <summary>Returns true only on the frame a health pool hits zero.</summary>
+        public bool MarkDefeatIfDead(float health)
         {
+            if (health > 0f || IsDefeat)
+            {
+                return false;
+            }
+
+            MarkDefeat();
+            return true;
+        }
+
+        /// <summary>Victory is final: a defeat can never be upgraded into a win.</summary>
+        public bool MarkVictory()
+        {
+            if (IsVictory || IsDefeat)
+            {
+                return false;
+            }
+
             IsVictory = true;
             SetDataAsDirty();
+            return true;
+        }
+
+        /// <summary>Reference boss timer: fires exactly once, ten minutes into a live run.</summary>
+        public bool TryTriggerBoss()
+        {
+            if (HasBossSpawned || IsRunOver || GameSeconds < BossTriggerSeconds)
+            {
+                return false;
+            }
+
+            HasBossSpawned = true;
+            SetDataAsDirty();
+            return true;
         }
 
         /// <summary>

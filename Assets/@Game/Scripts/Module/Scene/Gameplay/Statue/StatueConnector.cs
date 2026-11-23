@@ -1,4 +1,4 @@
-using Agate.MVC.Base;
+﻿using Agate.MVC.Base;
 using ProjectTA.Message;
 
 namespace ProjectTA.Module.Statue
@@ -16,6 +16,7 @@ namespace ProjectTA.Module.Statue
             Subscribe<GuardBuiltMessage>(_statue.OnGuardBuilt);
             Subscribe<BossDefeatedMessage>(_statue.OnBossDefeated);
             Subscribe<PlayerStatsChangedMessage>(_statue.OnPlayerStatsChanged);
+            Subscribe<HealZoneTaintMessage>(_statue.OnHealZoneTaint);
             Subscribe<CheatToggledMessage>(_statue.OnCheatToggled);
             Subscribe<DevHealStatueMessage>(_statue.OnDevHeal);
             Subscribe<DevMaxLevelMessage>(_statue.OnDevMaxLevel);
@@ -31,6 +32,7 @@ namespace ProjectTA.Module.Statue
             Unsubscribe<GuardBuiltMessage>(_statue.OnGuardBuilt);
             Unsubscribe<BossDefeatedMessage>(_statue.OnBossDefeated);
             Unsubscribe<PlayerStatsChangedMessage>(_statue.OnPlayerStatsChanged);
+            Unsubscribe<HealZoneTaintMessage>(_statue.OnHealZoneTaint);
             Unsubscribe<CheatToggledMessage>(_statue.OnCheatToggled);
             Unsubscribe<DevHealStatueMessage>(_statue.OnDevHeal);
             Unsubscribe<DevMaxLevelMessage>(_statue.OnDevMaxLevel);

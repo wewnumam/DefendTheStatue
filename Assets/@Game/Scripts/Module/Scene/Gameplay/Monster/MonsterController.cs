@@ -40,8 +40,8 @@ namespace ProjectTA.Module.Monster
 
         public void Flash()
         {
+            // The view holds the tint for _hitFlashSeconds and clears it from its tick.
             _view.PlayHitFlash();
-            _view.EndHitFlash();
         }
 
         /// <summary>Bite pose; the pool tick polls it back to idle.</summary>
@@ -59,6 +59,12 @@ namespace ProjectTA.Module.Monster
         public void TickAnimation(float deltaTime)
         {
             _view.TickAnimation(deltaTime);
+        }
+
+        /// <summary>GDD §21 "😇 Mind Control": swaps the body to the ally pose for the effect's duration.</summary>
+        public void SetMindControlled(bool mindControlled)
+        {
+            _view.SetMindControlled(mindControlled);
         }
     }
 }

@@ -15,6 +15,7 @@ namespace ProjectTA.Module.Hud
             Subscribe<HealZoneTaintMessage>(_hud.OnHealZoneTaint);
             Subscribe<StatueUpgradedMessage>(_hud.OnStatueUpgraded);
             Subscribe<RunClockMessage>(_hud.OnRunClock);
+            Subscribe<SkillStateMessage>(_hud.OnSkillState);
             Subscribe<BossSpawnedMessage>(_hud.OnBossSpawned);
             Subscribe<BossDamagedMessage>(_hud.OnBossDamaged);
             Subscribe<BossPhaseChangedMessage>(_hud.OnBossPhaseChanged);
@@ -30,6 +31,7 @@ namespace ProjectTA.Module.Hud
             Unsubscribe<HealZoneTaintMessage>(_hud.OnHealZoneTaint);
             Unsubscribe<StatueUpgradedMessage>(_hud.OnStatueUpgraded);
             Unsubscribe<RunClockMessage>(_hud.OnRunClock);
+            Unsubscribe<SkillStateMessage>(_hud.OnSkillState);
             Unsubscribe<BossSpawnedMessage>(_hud.OnBossSpawned);
             Unsubscribe<BossDamagedMessage>(_hud.OnBossDamaged);
             Unsubscribe<BossPhaseChangedMessage>(_hud.OnBossPhaseChanged);

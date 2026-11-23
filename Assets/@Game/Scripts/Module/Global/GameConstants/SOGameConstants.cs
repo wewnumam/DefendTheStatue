@@ -641,6 +641,54 @@ namespace ProjectTA.Module.GameConstants
         public float GuardEmpowerRadius => _guardEmpowerRadius;
         public float GuardEmpowerDamageMultiplier => _guardEmpowerDamageMultiplier;
         public float GuardEmpowerAttackSpeedMultiplier => _guardEmpowerAttackSpeedMultiplier;
+
+        /// <summary>GDD §13 effect names, one per weapon, in slot order. Shared by the HUD and the upgrade panel.</summary>
+        public static readonly string[] SwordSkillNames = { "Dash", "Time Slash", "Berserker", "Mind Control" };
+        public static readonly string[] BowSkillNames = { "Triple Shot", "Lock-On", "Clone Mode", "Guard Empower" };
+
+        /// <summary>GDD §15: 4 sword + 4 bow boxes with their unlock level and mana cost.</summary>
+        public string[] BuildSkillLines()
+        {
+            string[] lines = new string[8];
+
+            for (int i = 0; i < 4; i++)
+            {
+                lines[i] = $"{i + 1} Sword {SwordSkillNames[i]} — Lv {RequiredLevel(i)} · {ManaCost(i)} MP";
+                lines[i + 4] = $"{i + 1} Bow {BowSkillNames[i]} — Lv {RequiredLevel(i)} · {ManaCost(i)} MP";
+            }
+
+            return lines;
+        }
+
+        public int RequiredLevel(int slot)
+        {
+            switch (slot)
+            {
+                case 0:
+                    return _skill1RequiredStatueLevel;
+                case 1:
+                    return _skill2RequiredStatueLevel;
+                case 2:
+                    return _skill3RequiredStatueLevel;
+                default:
+                    return _skill4RequiredStatueLevel;
+            }
+        }
+
+        public int ManaCost(int slot)
+        {
+            switch (slot)
+            {
+                case 0:
+                    return UnityEngine.Mathf.RoundToInt(_skill1ManaCost);
+                case 1:
+                    return UnityEngine.Mathf.RoundToInt(_skill2ManaCost);
+                case 2:
+                    return UnityEngine.Mathf.RoundToInt(_skill3ManaCost);
+                default:
+                    return UnityEngine.Mathf.RoundToInt(_skill4ManaCost);
+            }
+        }
     }
 
     [Serializable]

@@ -80,8 +80,18 @@ namespace ProjectTA.Module.Statue
         public bool IsAlive => Health > 0f;
 
         /// <summary>GDD §5 price list: what the next level costs, charged before the level rises.</summary>
-        public int UpgradeCost =>
-            IsMaxLevel ? 0 : UpgradeCosts[Mathf.Clamp(Level + 1, MinLevel, MaxLevel)];
+        public int UpgradeCost => GetUpgradeCost(Level);
+
+        /// <summary>Price of reaching level + 1, for UI that only knows the current level.</summary>
+        public static int GetUpgradeCost(int level)
+        {
+            if (level >= MaxLevel)
+            {
+                return 0;
+            }
+
+            return UpgradeCosts[Mathf.Clamp(level + 1, MinLevel, MaxLevel)];
+        }
 
         public static StatueUpgradeEffect GetEffect(int level)
         {

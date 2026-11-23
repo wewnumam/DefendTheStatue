@@ -27,6 +27,16 @@ namespace ProjectTA.Module.Tree
         [SerializeField] private Color _magicColor = new Color(0.3f, 0.55f, 0.95f);
         [SerializeField] private Color _arcanaColor = new Color(0.95f, 0.8f, 0.2f);
 
+        /// <summary>
+        /// GDD §10 art per kind. A null slot keeps the prefab's own sprite and the colour tint above,
+        /// so a scene without these wired still tells the four kinds apart.
+        /// </summary>
+        [Header("Per-kind art (GDD §10)")]
+        [SerializeField] private Sprite _redSprite;
+        [SerializeField] private Sprite _purpleSprite;
+        [SerializeField] private Sprite _magicSprite;
+        [SerializeField] private Sprite _arcanaSprite;
+
         public void SpawnTree(int id, Vector2 position, float size)
         {
             SpawnTree(id, position, size, Utility.EnumManager.TreeKind.Red);
@@ -43,6 +53,13 @@ namespace ProjectTA.Module.Tree
             SpriteRenderer tree = Instantiate(_treePrefab, transform);
             tree.transform.localPosition = new Vector3(position.x, position.y, 0f);
             tree.transform.localScale = new Vector3(size, size, 1f);
+
+            Sprite sprite = SpriteFor(kind);
+            if (sprite != null)
+            {
+                tree.sprite = sprite;
+            }
+
             tree.color = ColorFor(kind);
 
             // The collider's hitbox needs the id so an arrow can name the tree it hit.
@@ -53,6 +70,21 @@ namespace ProjectTA.Module.Tree
             }
 
             _trees[id] = tree;
+        }
+
+        private Sprite SpriteFor(Utility.EnumManager.TreeKind kind)
+        {
+            switch (kind)
+            {
+                case Utility.EnumManager.TreeKind.Purple:
+                    return _purpleSprite;
+                case Utility.EnumManager.TreeKind.Magic:
+                    return _magicSprite;
+                case Utility.EnumManager.TreeKind.Arcana:
+                    return _arcanaSprite;
+                default:
+                    return _redSprite;
+            }
         }
 
         /// <summary>Hides a chopped tree without dropping its collider, so the stump stays solid.</summary>

@@ -141,6 +141,15 @@ namespace ProjectTA.Tests.EditMode
         }
 
         [Test]
+        public void GetUpgradeCost_ReadsTheLadderWithoutAnInstance()
+        {
+            // The skill upgrade overlay only knows the level, so the price has to be static.
+            Assert.That(StatueModel.GetUpgradeCost(1), Is.EqualTo(20));
+            Assert.That(StatueModel.GetUpgradeCost(9), Is.EqualTo(140));
+            Assert.That(StatueModel.GetUpgradeCost(StatueModel.MaxLevel), Is.EqualTo(0));
+        }
+
+        [Test]
         public void Heal_ClampsAtMaximum()
         {
             _model.ApplyDamage(20f);

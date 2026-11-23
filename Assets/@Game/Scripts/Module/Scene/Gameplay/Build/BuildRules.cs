@@ -4,9 +4,19 @@ using UnityEngine;
 
 namespace ProjectTA.Module.Build
 {
+    /// <summary>What the build menu asks for. Any keeps the original "nearest legal slot" key.</summary>
+    public enum BuildKind
+    {
+        Any = 0,
+        Tower = 1,
+        Wall = 2,
+        Guard = 3,
+        Trap = 4
+    }
+
     /// <summary>
     /// Build and upgrade gates, ported one to one from the reference game's canBuild* and
-    /// canUpgradeToLevel functions. Pure rules: no state, so every branch is testable.
+    /// canUpgradeToLevel functions. Pure rules, so every branch is testable.
     /// </summary>
     public static class BuildRules
     {
@@ -17,6 +27,24 @@ namespace ProjectTA.Module.Build
         public const int GuardCostLevel3 = 20;
         public const int GuardCostLevel5 = 25;
         public const int GuardCostLevel10 = 30;
+
+        /// <summary>Menu label price for one build kind; the guard figure is the cheapest tier.</summary>
+        public static int CostOf(BuildKind kind)
+        {
+            switch (kind)
+            {
+                case BuildKind.Tower:
+                    return TowerCost;
+                case BuildKind.Wall:
+                    return WallSegmentCost;
+                case BuildKind.Guard:
+                    return GuardCostLevel3;
+                case BuildKind.Trap:
+                    return SpikeTrapCost;
+                default:
+                    return 0;
+            }
+        }
 
         /// <summary>Reference game: territory 0 needs statue level 2, territory 1 needs level 4.</summary>
         public static bool CanBuildTowerAt(int territoryIndex, int statueLevel)

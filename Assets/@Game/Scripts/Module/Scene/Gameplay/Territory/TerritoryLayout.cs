@@ -72,5 +72,18 @@ namespace ProjectTA.Module.Territory
                 end = to;
             }
         }
+
+        /// <summary>
+        /// The middle of each side, where the wall leaves its opening. Top, right, bottom, left —
+        /// the reference game's getWallGaps order, which is also where spike traps sit.
+        /// </summary>
+        public Vector2 GetWallGap(int territoryIndex, int gapIndex)
+        {
+            int gap = ((gapIndex % TerritoryState.WallSegmentCount) + TerritoryState.WallSegmentCount)
+                % TerritoryState.WallSegmentCount;
+            int corner = gap / 2;
+
+            return (GetCornerPosition(territoryIndex, corner) + GetCornerPosition(territoryIndex, corner + 1)) * 0.5f;
+        }
     }
 }

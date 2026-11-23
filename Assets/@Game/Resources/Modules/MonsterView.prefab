@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &8530630064156416430
 GameObject:
@@ -116,7 +116,25 @@ MonoBehaviour:
   _idleState: Deasor_Idle
   _attackState: Deasor_Attack
   _hitState: Deasor_GetHit
+  _animatedKind: 2
+  _kindSprites:
+  - Kind: 0
+    Idle: {fileID: 5865062479722025680, guid: 26c81a2c4df843747a2246e611b70ca8, type: 3}
+    Attack: {fileID: -5023586445214687694, guid: a6a29e2b8d452c347ab11e9cf8f50a81, type: 3}
+    Hit: {fileID: 3436883529222448981, guid: 345597b0f9743f746865244e51a5b268, type: 3}
+    MindControlled: {fileID: -788730817843334258, guid: dc4609fa43016a442beda49227141249, type: 3}
+  - Kind: 1
+    Idle: {fileID: 4346686010195499002, guid: 6cb338e2835914b4cbeaa9bb59c1d16e, type: 3}
+    Attack: {fileID: -6283849694832858236, guid: 04fba503d67afaf46ba119b4bb0fbd7a, type: 3}
+    Hit: {fileID: -329361963211666085, guid: 13b418e55f6092f4790a6f4bd3bec4f9, type: 3}
+    MindControlled: {fileID: 1198315481154565773, guid: 4ee2f4f724e3c5341be3b8ab73cb9f25, type: 3}
+  - Kind: 2
+    Idle: {fileID: -4592860749798507518, guid: 2a364db437754ea4cb62711120487fc1, type: 3}
+    Attack: {fileID: 7575732830443893531, guid: f5ac044b4882df24d988e8b291759b41, type: 3}
+    Hit: {fileID: 5791313928182942930, guid: 68ba432a43b2f6f44b2564e4e44362da, type: 3}
+    MindControlled: {fileID: 7458448485766302733, guid: 606b683f54ea715428c78501842a8cd9, type: 3}
   _minOneShotSeconds: 0.15
+  _hitFlashSeconds: 0.1
 --- !u!114 &582552136076718910
 MonoBehaviour:
   m_ObjectHideFlags: 0

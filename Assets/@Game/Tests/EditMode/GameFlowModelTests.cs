@@ -100,6 +100,67 @@ namespace ProjectTA.Tests.EditMode
             _model.MarkDefeat();
 
             Assert.That(_model.IsDefeat, Is.True);
+            Assert.That(_model.IsRunOver, Is.True);
+        }
+
+        [Test]
+        public void MarkDefeatIfDead_OnlyFiresOnTheZeroCrossing()
+        {
+            Assert.That(_model.MarkDefeatIfDead(10f), Is.False);
+            Assert.That(_model.IsDefeat, Is.False);
+
+            Assert.That(_model.MarkDefeatIfDead(0f), Is.True);
+            Assert.That(_model.IsDefeat, Is.True);
+
+            Assert.That(_model.MarkDefeatIfDead(0f), Is.False, "already dead");
+        }
+
+        [Test]
+        public void MarkVictory_IsFinalAndBlockedByDefeat()
+        {
+            Assert.That(_model.MarkVictory(), Is.True);
+            Assert.That(_model.MarkVictory(), Is.False, "already won");
+            Assert.That(_model.IsVictory, Is.True);
+
+            GameFlowModel lost = new GameFlowModel();
+            lost.Reset();
+            lost.MarkDefeat();
+            Assert.That(lost.MarkVictory(), Is.False, "a defeat cannot become a win");
+            Assert.That(lost.IsVictory, Is.False);
+        }
+
+        [Test]
+        public void BossTrigger_FiresExactlyOnceAtTenMinutes()
+        {
+            _model.Advance(599f);
+            Assert.That(_model.TryTriggerBoss(), Is.False, "still 599s");
+
+            _model.Advance(1f);
+            Assert.That(_model.TryTriggerBoss(), Is.True);
+            Assert.That(_model.HasBossSpawned, Is.True);
+
+            _model.Advance(600f);
+            Assert.That(_model.TryTriggerBoss(), Is.False, "the boss only arrives once");
+        }
+
+        [Test]
+        public void BossTrigger_DoesNotFireAfterTheRunEnds()
+        {
+            _model.MarkDefeat();
+            _model.Advance(600f);
+            Assert.That(_model.TryTriggerBoss(), Is.False);
+            Assert.That(_model.HasBossSpawned, Is.False);
+        }
+
+        [Test]
+        public void Reset_ClearsTheBossFlag()
+        {
+            _model.Advance(600f);
+            _model.TryTriggerBoss();
+            _model.Reset();
+
+            Assert.That(_model.HasBossSpawned, Is.False);
+            Assert.That(_model.IsRunOver, Is.False);
         }
 
         [Test]

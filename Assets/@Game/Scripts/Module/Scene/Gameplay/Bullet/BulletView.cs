@@ -1,5 +1,7 @@
 using Agate.MVC.Base;
+using ProjectTA.Module.Boss;
 using ProjectTA.Module.Monster;
+using ProjectTA.Module.Tree;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -14,6 +16,8 @@ namespace ProjectTA.Module.Bullet
         private bool _hasHitTarget;
         private UnityAction _onCollideWithCollider;
         private UnityAction<int, Vector2> _onHitMonster;
+        private UnityAction<int, Vector2> _onHitTree;
+        private UnityAction<Vector2> _onHitBoss;
 
         public Rigidbody2D Rb => _rb;
         public float LaunchForce => _launchForce;
@@ -36,6 +40,17 @@ namespace ProjectTA.Module.Bullet
         public void SetMonsterHitCallback(UnityAction<int, Vector2> onHitMonster)
         {
             _onHitMonster = onHitMonster;
+        }
+
+        public void SetTreeHitCallback(UnityAction<int, Vector2> onHitTree)
+        {
+            _onHitTree = onHitTree;
+        }
+
+        /// <summary>The boss is not a pooled monster, so its hit gets its own callback.</summary>
+        public void SetBossHitCallback(UnityAction<Vector2> onHitBoss)
+        {
+            _onHitBoss = onHitBoss;
         }
 
         public void SetLaunchForce(float launchForce)
@@ -82,10 +97,21 @@ namespace ProjectTA.Module.Bullet
             transform.position = collision.GetContact(0).point;
             transform.SetParent(collision.transform, true);
 
+            if (collision.collider.GetComponentInParent<BossHitbox>() != null)
+            {
+                _onHitBoss?.Invoke(transform.position);
+            }
+
             MonsterHitbox hitbox = collision.collider.GetComponentInParent<MonsterHitbox>();
             if (hitbox != null && hitbox.MonsterId >= 0)
             {
                 _onHitMonster?.Invoke(hitbox.MonsterId, transform.position);
+            }
+
+            TreeHitbox treeHitbox = collision.collider.GetComponentInParent<TreeHitbox>();
+            if (treeHitbox != null && treeHitbox.TreeId >= 0)
+            {
+                _onHitTree?.Invoke(treeHitbox.TreeId, transform.position);
             }
 
             // Despawn the bullet after a delay

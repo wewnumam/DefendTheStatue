@@ -186,6 +186,7 @@ namespace ProjectTA.Scene.Gameplay
             _hud.InitModel(_gameConstants.Model);
             _hud.SetView(_view.HudView);
             _slowField.SetView(_view.SlowFieldView);
+            _gameStateUi.SetSkillConstants(_gameConstants.Model.GameConstants.SkillConstants);
             _gameStateUi.SetView(_view.GameStateUiView);
 
             _input.SetReady();

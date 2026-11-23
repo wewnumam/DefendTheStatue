@@ -14,6 +14,9 @@ namespace ProjectTA.Module.Build
             Subscribe<PlayerStatsChangedMessage>(_build.OnPlayerStatsChanged);
             Subscribe<TowerBuiltMessage>(_build.OnTowerBuilt);
             Subscribe<WallSegmentBuiltMessage>(_build.OnWallSegmentBuilt);
+            Subscribe<TrapBuiltMessage>(_build.OnTrapBuilt);
+            Subscribe<GuardBuiltMessage>(_build.OnGuardBuilt);
+            Subscribe<CheatToggledMessage>(_build.OnCheatToggled);
             Subscribe<GameStateMessage>(_build.OnGameState);
         }
 
@@ -24,6 +27,9 @@ namespace ProjectTA.Module.Build
             Unsubscribe<PlayerStatsChangedMessage>(_build.OnPlayerStatsChanged);
             Unsubscribe<TowerBuiltMessage>(_build.OnTowerBuilt);
             Unsubscribe<WallSegmentBuiltMessage>(_build.OnWallSegmentBuilt);
+            Unsubscribe<TrapBuiltMessage>(_build.OnTrapBuilt);
+            Unsubscribe<GuardBuiltMessage>(_build.OnGuardBuilt);
+            Unsubscribe<CheatToggledMessage>(_build.OnCheatToggled);
             Unsubscribe<GameStateMessage>(_build.OnGameState);
         }
     }

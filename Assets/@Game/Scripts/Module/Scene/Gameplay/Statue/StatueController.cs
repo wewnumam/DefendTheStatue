@@ -145,6 +145,12 @@ namespace ProjectTA.Module.Statue
             _essence = message.Essence;
         }
 
+        /// <summary>GDD §21: the zone blinks while a monster stands in the statue's heal radius.</summary>
+        public void OnHealZoneTaint(HealZoneTaintMessage message)
+        {
+            _view?.SetZoneTainted(message.Tainted);
+        }
+
         public void OnCheatToggled(CheatToggledMessage message)
         {
             if (message.Cheat == EnumManager.CheatType.GodMode)

@@ -7,10 +7,6 @@ namespace ProjectTA.Module.Hud
 {
     public class HudController : ObjectController<HudController, HudModel, HudView>
     {
-        /// <summary>GDD §13 effect names, one per weapon, in slot order.</summary>
-        private static readonly string[] SwordSkills = { "Dash", "Time Slash", "Berserker", "Mind Control" };
-        private static readonly string[] BowSkills = { "Triple Shot", "Lock-On", "Clone Mode", "Guard Empower" };
-
         private PlayerSkillConstants _skills;
 
         public void InitModel(IGameConstantsModel gameConstants)
@@ -33,55 +29,7 @@ namespace ProjectTA.Module.Hud
         /// <summary>GDD §15: 4 sword + 4 bow boxes with their unlock level and mana cost.</summary>
         private string[] BuildSkillLines()
         {
-            string[] lines = new string[8];
-
-            for (int i = 0; i < 4; i++)
-            {
-                lines[i] = $"{i + 1} S {SwordSkills[i]} — {UnlockLevel(i)} · {ManaCost(i)} MP";
-                lines[i + 4] = $"{i + 1} B {BowSkills[i]} — {UnlockLevel(i)} · {ManaCost(i)} MP";
-            }
-
-            return lines;
-        }
-
-        private int UnlockLevel(int slot)
-        {
-            if (_skills == null)
-            {
-                return 0;
-            }
-
-            switch (slot)
-            {
-                case 0:
-                    return _skills.Skill1RequiredStatueLevel;
-                case 1:
-                    return _skills.Skill2RequiredStatueLevel;
-                case 2:
-                    return _skills.Skill3RequiredStatueLevel;
-                default:
-                    return _skills.Skill4RequiredStatueLevel;
-            }
-        }
-
-        private int ManaCost(int slot)
-        {
-            if (_skills == null)
-            {
-                return 0;
-            }
-
-            switch (slot)
-            {
-                case 0:
-                    return UnityEngine.Mathf.RoundToInt(_skills.Skill1ManaCost);
-                case 1:
-                    return UnityEngine.Mathf.RoundToInt(_skills.Skill2ManaCost);
-                case 2:
-                    return UnityEngine.Mathf.RoundToInt(_skills.Skill3ManaCost);
-                default:
-                    return UnityEngine.Mathf.RoundToInt(_skills.Skill4ManaCost);
-            }
+            return _skills != null ? _skills.BuildSkillLines() : new string[8];
         }
 
         public void OnHealZoneTaint(HealZoneTaintMessage message)
@@ -111,6 +59,15 @@ namespace ProjectTA.Module.Hud
             }
 
             _view.SetStats(message);
+        }
+
+        /// <summary>GDD §15: the eight skill boxes, refreshed on the skill module's slow tick.</summary>
+        public void OnSkillState(SkillStateMessage message)
+        {
+            if (_view != null)
+            {
+                _view.SetSkillState(message);
+            }
         }
 
         public void OnRunClock(RunClockMessage message)

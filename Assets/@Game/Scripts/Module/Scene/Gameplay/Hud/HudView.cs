@@ -1,7 +1,10 @@
-using Agate.MVC.Base;
+﻿using Agate.MVC.Base;
 using ProjectTA.Message;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using ProjectTA.Utility;
 
@@ -23,6 +26,41 @@ namespace ProjectTA.Module.Hud
         [SerializeField] private TMP_Text _weaponText;
 
         /// <summary>
+        /// Four-state software pointer. The art is 16x16, so each hotspot is given in texture pixels
+        /// from the bottom-left of its sprite; edit the hotspot table if the art changes.
+        /// </summary>
+        public enum PointerState
+        {
+            Default = 0,
+            Hand = 1,
+            Sword = 2,
+            Bow = 3
+        }
+
+        private static readonly string[] PointerPaths =
+        {
+            "Sprites/Pointer/pointer_default",
+            "Sprites/Pointer/pointer_hand",
+            "Sprites/Pointer/pointer_sword",
+            "Sprites/Pointer/pointer_bow",
+        };
+
+        /// <summary>Over the tip of the arrow, the fingertip, the blade tip, the bow's grip.</summary>
+        private static readonly Vector2[] PointerHotspots =
+        {
+            new Vector2(0f, 0f),
+            new Vector2(2f, 1f),
+            new Vector2(1f, 0f),
+            new Vector2(8f, 8f),
+        };
+
+        private readonly Texture2D[] _pointerTextures = new Texture2D[PointerPaths.Length];
+        private readonly List<RaycastResult> _pointerHits = new List<RaycastResult>();
+        private PointerEventData _pointerData;
+        private PointerState? _pointerApplied;
+        private EnumManager.WeaponKind _weapon = EnumManager.WeaponKind.Sword;
+
+        /// <summary>
         /// Run clock and boss bar are built at runtime: the scene's HUD is hand-authored, and adding
         /// two more UI trees there is more fragile than four lines of anchors. ponytail: move them into
         /// the scene if a designer ever needs to theme them.
@@ -38,11 +76,85 @@ namespace ProjectTA.Module.Hud
         private TMP_Text _skillText;
         private float _bossFillWidth = BossBarWidth - 4f;
 
+        /// <summary>
+        /// GDD §15: eight boxes bottom-right. Built at runtime from the Resources art so the HUD needs no
+        /// scene wiring; the scene text grid stays as the fallback when an icon is missing.
+        /// </summary>
+        private const int SkillBoxCount = 8;
+        private const int SkillColumns = 4;
+        private const float SkillBoxSize = 56f;
+        private const float SkillBoxGap = 6f;
+        private const string SkillIconRoot = "Sprites/UI Skill Icon/UI ICON/";
+        private const string LockIconPath = "Sprites/UI Skill Icon/UI Skill Lock atau off/Lock (Gembok)";
+        private const string BoxFillPath = "Sprites/UI Skill Icon/UI Skill Unlocked atau On/fill";
+        private const string BoxFramePath = "Sprites/UI Skill Icon/UI Skill Unlocked atau On/frame";
+
+        /// <summary>Sword 1-4 then bow 1-4 — the same order the skill model publishes.</summary>
+        private static readonly string[] SkillIconPaths =
+        {
+            "Sword/Skill 1 UI ICON Sword",
+            "Sword/Skill 2 UI ICON Sword",
+            "Sword/Skill 3 UI ICON Sword",
+            "Sword/Skill 4 UI ICON Sword",
+            "Bow/Skill 1 UI ICON BOW",
+            "Bow/Skill 2 UI ICON Bow",
+            "Bow/Skill 3 UI ICON Bow",
+            "Bow/Skill 4 UI ICON Bow",
+        };
+
+        private readonly Sprite[] _skillIcons = new Sprite[SkillBoxCount];
+        private readonly Image[] _skillBoxFrames = new Image[SkillBoxCount];
+        private readonly Image[] _skillBoxFills = new Image[SkillBoxCount];
+        private readonly Image[] _skillBoxIcons = new Image[SkillBoxCount];
+        private readonly Image[] _skillBoxLocks = new Image[SkillBoxCount];
+        private readonly TMP_Text[] _skillBoxTimers = new TMP_Text[SkillBoxCount];
+        private Sprite _lockIcon;
+        private Sprite _boxFillArt;
+        private Sprite _boxFrameArt;
+        private bool _skillBoxesBuilt;
+        private bool _skillIconsLoaded;
+
+        /// <summary>
+        /// GDD §15 circular gauges. The scene's three sliders are horizontal bars, so the round art is
+        /// drawn as its own radial overlay bottom-left and the sliders stay as the fallback.
+        /// </summary>
+        private const string GaugeRoot = "Sprites/UI (Health, Mana, Stamina)/";
+        private const float GaugeSize = 88f;
+        private const float GaugeGap = 10f;
+
+        private static readonly string[] GaugeFramePaths =
+        {
+            "Health Bar/Frame (Health)",
+            "Stamina Bar/Frame (Stamina)",
+            "Mana Bar/Frame (Mana)",
+        };
+
+        private static readonly string[] GaugeFillPaths =
+        {
+            "Health Bar/Fill (Health)",
+            "Stamina Bar/Fill (Stamina)",
+            "Mana Bar/Fill (Mana)",
+        };
+
+        private static readonly string[] GaugeLabels = { "HP", "ST", "MP" };
+
+        private readonly Image[] _gaugeFills = new Image[3];
+        private bool _gaugesBuilt;
+
+        private static readonly Color BoxIdle = new Color(0f, 0f, 0f, 0.55f);
+        private static readonly Color BoxActive = new Color(0.2f, 0.65f, 0.3f, 0.8f);
+        private static readonly Color BoxOnCooldown = new Color(0.25f, 0.12f, 0.12f, 0.7f);
+        private static readonly Color IconDimmed = new Color(1f, 1f, 1f, 0.35f);
+        private static readonly Color IconOffWeapon = new Color(1f, 1f, 1f, 0.55f);
+        private static readonly Color IconLocked = new Color(0.35f, 0.35f, 0.35f, 0.7f);
+
         public void SetStats(PlayerStatsChangedMessage message)
         {
             SetBar(_healthSlider, message.Health, message.MaxHealth);
             SetBar(_staminaSlider, message.Stamina, message.MaxStamina);
             SetBar(_manaSlider, message.Mana, message.MaxMana);
+            SetGauges(message.Health, message.MaxHealth, message.Stamina, message.MaxStamina,
+                message.Mana, message.MaxMana);
 
             if (_essenceText != null)
             {
@@ -60,6 +172,97 @@ namespace ProjectTA.Module.Hud
             SetBar(_statueSlider, health, maxHealth);
         }
 
+        /// <summary>GDD §15: three circular gauges bottom-left, driven by the same stats message.</summary>
+        private void SetGauges(float health, float maxHealth, float stamina, float maxStamina, float mana, float maxMana)
+        {
+            EnsureGauges();
+            SetGauge(_gaugeFills[0], health, maxHealth);
+            SetGauge(_gaugeFills[1], stamina, maxStamina);
+            SetGauge(_gaugeFills[2], mana, maxMana);
+        }
+
+        private static void SetGauge(Image fill, float value, float max)
+        {
+            if (fill != null)
+            {
+                fill.fillAmount = max > 0f ? Mathf.Clamp01(value / max) : 0f;
+            }
+        }
+
+        private void EnsureGauges()
+        {
+            if (_gaugesBuilt)
+            {
+                return;
+            }
+
+            _gaugesBuilt = true;
+
+            for (int i = 0; i < 3; i++)
+            {
+                GameObject gauge = new GameObject("Gauge" + GaugeLabels[i], typeof(RectTransform));
+                RectTransform rect = gauge.GetComponent<RectTransform>();
+                rect.SetParent(transform, false);
+                rect.anchorMin = rect.anchorMax = new Vector2(0f, 0f);
+                rect.pivot = new Vector2(0f, 0f);
+                rect.sizeDelta = new Vector2(GaugeSize, GaugeSize);
+                // The scene's three 300x80 sliders already sit at the bottom-left corner, so the round
+                // gauges start to their right instead of landing on top of them.
+                rect.anchoredPosition = new Vector2(316f + i * (GaugeSize + GaugeGap), 16f);
+
+                _gaugeFills[i] = CreateRadialFill(rect, GaugeFillPaths[i]);
+                CreateOverlay(rect, "Frame", GaugeFramePaths[i]);
+
+                TMP_Text label = CreateText(
+                    "Label", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(GaugeSize, 20f), 15f);
+                label.rectTransform.SetParent(rect, false);
+                label.text = GaugeLabels[i];
+            }
+        }
+
+        private Image CreateRadialFill(RectTransform parent, string path)
+        {
+            GameObject go = new GameObject("Fill", typeof(RectTransform));
+            RectTransform rect = go.GetComponent<RectTransform>();
+            rect.SetParent(parent, false);
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+
+            Image image = go.AddComponent<Image>();
+            image.sprite = LoadSprite(GaugeRoot + path);
+            image.type = Image.Type.Filled;
+            image.fillMethod = Image.FillMethod.Radial360;
+            image.fillOrigin = (int)Image.Origin360.Top;
+            image.fillClockwise = true;
+            image.fillAmount = 1f;
+            image.raycastTarget = false;
+            return image;
+        }
+
+        private Image CreateOverlay(RectTransform parent, string name, string path)
+        {
+            return CreateOverlay(parent, name, LoadSprite(GaugeRoot + path));
+        }
+
+        private Image CreateOverlay(RectTransform parent, string name, Sprite sprite)
+        {
+            GameObject go = new GameObject(name, typeof(RectTransform));
+            RectTransform rect = go.GetComponent<RectTransform>();
+            rect.SetParent(parent, false);
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+
+            Image image = go.AddComponent<Image>();
+            image.sprite = sprite;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+            return image;
+        }
+
         /// <summary>GDD §21: the statue bar reads red while a monster stands in the heal zone.</summary>
         public void SetStatueTainted(bool tainted)
         {
@@ -75,9 +278,18 @@ namespace ProjectTA.Module.Hud
             }
         }
 
-        /// <summary>GDD §15: the eight skill boxes, one line each, built at runtime like the clock.</summary>
+        /// <summary>
+        /// GDD §15 fallback: when the icon art cannot be loaded the eight skills are printed as text.
+        /// With icons present the boxes carry the same information, so the text grid stays hidden.
+        /// </summary>
         public void SetSkillGrid(string[] lines)
         {
+            LoadSkillIcons();
+            if (_skillIcons[0] != null)
+            {
+                return;
+            }
+
             EnsureSkillGrid();
             _skillText.text = lines == null ? string.Empty : string.Join("\n", lines);
         }
@@ -95,13 +307,239 @@ namespace ProjectTA.Module.Hud
             _skillText.rectTransform.pivot = new Vector2(1f, 0f);
         }
 
+        /// <summary>GDD §15: eight icon boxes with lock state, cooldown countdown and the active highlight.</summary>
+        public void SetSkillState(SkillStateMessage message)
+        {
+            EnsureSkillBoxes();
+            if (_skillBoxFrames[0] == null || message.Boxes == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < SkillBoxCount && i < message.Boxes.Length; i++)
+            {
+                SkillBoxState box = message.Boxes[i];
+                bool onWeapon = box.Weapon == message.Weapon;
+                bool cooling = box.CooldownRemaining > 0.05f;
+
+                _skillBoxIcons[i].sprite = _skillIcons[i];
+                _skillBoxIcons[i].color = !box.Unlocked ? IconLocked
+                    : cooling ? IconDimmed
+                    : onWeapon ? Color.white : IconOffWeapon;
+
+                _skillBoxLocks[i].enabled = !box.Unlocked;
+
+                Color state = box.Active ? BoxActive
+                    : cooling ? BoxOnCooldown
+                    : BoxIdle;
+
+                _skillBoxFrames[i].color = state;
+                if (_skillBoxFills[i] != null)
+                {
+                    _skillBoxFills[i].color = state;
+                }
+
+                _skillBoxTimers[i].text = !box.Unlocked
+                    ? "Lv" + box.RequiredLevel
+                    : box.Active ? Mathf.CeilToInt(Mathf.Max(0f, box.ActiveRemaining)).ToString()
+                    : cooling ? Mathf.CeilToInt(box.CooldownRemaining).ToString()
+                    : string.Empty;
+            }
+        }
+
+        private void EnsureSkillBoxes()
+        {
+            if (_skillBoxesBuilt)
+            {
+                return;
+            }
+
+            _skillBoxesBuilt = true;
+            LoadSkillIcons();
+
+            GameObject root = new GameObject("SkillBoxes", typeof(RectTransform));
+            RectTransform rootRect = root.GetComponent<RectTransform>();
+            rootRect.SetParent(transform, false);
+            rootRect.anchorMin = rootRect.anchorMax = new Vector2(1f, 0f);
+            rootRect.pivot = new Vector2(1f, 0f);
+            rootRect.anchoredPosition = new Vector2(-16f, 16f);
+            rootRect.sizeDelta = new Vector2(
+                SkillColumns * SkillBoxSize + (SkillColumns - 1) * SkillBoxGap,
+                2f * SkillBoxSize + SkillBoxGap);
+
+            for (int i = 0; i < SkillBoxCount; i++)
+            {
+                int column = i % SkillColumns;
+                int row = i / SkillColumns;
+
+                GameObject box = new GameObject("Skill" + (i + 1), typeof(RectTransform));
+                RectTransform rect = box.GetComponent<RectTransform>();
+                rect.SetParent(rootRect, false);
+                rect.anchorMin = rect.anchorMax = new Vector2(0f, 1f);
+                rect.pivot = new Vector2(0f, 1f);
+                rect.sizeDelta = new Vector2(SkillBoxSize, SkillBoxSize);
+                rect.anchoredPosition = new Vector2(
+                    column * (SkillBoxSize + SkillBoxGap),
+                    -row * (SkillBoxSize + SkillBoxGap));
+
+                _skillBoxFrames[i] = box.AddComponent<Image>();
+                _skillBoxFrames[i].raycastTarget = false;
+                _skillBoxFrames[i].color = BoxIdle;
+
+                // Authored chrome: fill under the icon, frame above it. A null sprite leaves the flat
+                // tint in place, so a missing art file degrades instead of breaking the box.
+                if (_boxFillArt != null)
+                {
+                    _skillBoxFills[i] = CreateOverlay(rect, "Fill", _boxFillArt);
+                }
+
+                _skillBoxIcons[i] = CreateIcon(rect, "Icon", _skillIcons[i]);
+                _skillBoxLocks[i] = CreateIcon(rect, "Lock", _lockIcon);
+                _skillBoxLocks[i].enabled = false;
+
+                if (_boxFrameArt != null)
+                {
+                    CreateOverlay(rect, "Frame", _boxFrameArt);
+                }
+
+                _skillBoxTimers[i] = CreateText(
+                    "Timer", new Vector2(0.5f, 0f), new Vector2(0f, 2f), new Vector2(SkillBoxSize, 20f), 16f);
+                _skillBoxTimers[i].rectTransform.SetParent(rect, false);
+                _skillBoxTimers[i].rectTransform.pivot = new Vector2(0.5f, 0f);
+                _skillBoxTimers[i].alignment = TextAlignmentOptions.Bottom;
+                _skillBoxTimers[i].text = string.Empty;
+            }
+        }
+
+        private void LoadSkillIcons()
+        {
+            if (_skillIconsLoaded)
+            {
+                return;
+            }
+
+            _skillIconsLoaded = true;
+            _lockIcon = LoadSprite(LockIconPath);
+            _boxFillArt = LoadSprite(BoxFillPath);
+            _boxFrameArt = LoadSprite(BoxFramePath);
+
+            for (int i = 0; i < SkillBoxCount; i++)
+            {
+                _skillIcons[i] = LoadSprite(SkillIconRoot + SkillIconPaths[i]);
+            }
+        }
+
+        /// <summary>
+        /// The art sits under Resources as multi-sprite sheets, so the first sub-sprite is the icon.
+        /// A missing icon leaves the box empty rather than throwing during a run.
+        /// </summary>
+        private static Sprite LoadSprite(string path)
+        {
+            Sprite[] sprites = Resources.LoadAll<Sprite>(path);
+            return sprites != null && sprites.Length > 0 ? sprites[0] : null;
+        }
+
+        private Image CreateIcon(RectTransform parent, string name, Sprite sprite)
+        {
+            GameObject go = new GameObject(name, typeof(RectTransform));
+            RectTransform rect = go.GetComponent<RectTransform>();
+            rect.SetParent(parent, false);
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = new Vector2(4f, 4f);
+            rect.offsetMax = new Vector2(-4f, -4f);
+
+            Image image = go.AddComponent<Image>();
+            image.sprite = sprite;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+            return image;
+        }
+
         /// <summary>Which weapon is in hand, mirrored from the skill module's resolved switch.</summary>
         public void SetWeapon(EnumManager.WeaponKind weapon)
         {
+            _weapon = weapon;
+
             if (_weaponText != null)
             {
                 _weaponText.text = weapon == EnumManager.WeaponKind.Bow ? "Weapon Bow" : "Weapon Sword";
             }
+        }
+
+        /// <summary>
+        /// A button wins over the weapon, and a frozen run (pause, game over) drops back to the arrow
+        /// so the hand/sword cue never outlives the run it describes.
+        /// </summary>
+        public static PointerState ResolvePointerState(bool overButton, EnumManager.WeaponKind weapon, bool playing)
+        {
+            if (overButton)
+            {
+                return PointerState.Hand;
+            }
+
+            if (!playing)
+            {
+                return PointerState.Default;
+            }
+
+            return weapon == EnumManager.WeaponKind.Bow ? PointerState.Bow : PointerState.Sword;
+        }
+
+        private void Awake()
+        {
+            for (int i = 0; i < PointerPaths.Length; i++)
+            {
+                _pointerTextures[i] = Resources.Load<Texture2D>(PointerPaths[i]);
+                if (_pointerTextures[i] == null)
+                {
+                    Debug.LogWarning($"[HudView] Pointer texture missing: Resources/{PointerPaths[i]}");
+                }
+            }
+        }
+
+        /// <summary>
+        /// The hand is decided by a UI raycast against any interactable Selectable, so every authored
+        /// button gets it without per-button wiring.
+        /// </summary>
+        private void UpdatePointer()
+        {
+            PointerState next = ResolvePointerState(IsOverButton(), _weapon, Time.timeScale > 0f);
+            if (next == _pointerApplied)
+            {
+                return;
+            }
+
+            _pointerApplied = next;
+            Cursor.SetCursor(_pointerTextures[(int)next], PointerHotspots[(int)next], CursorMode.Auto);
+        }
+
+        private bool IsOverButton()
+        {
+            if (EventSystem.current == null || Mouse.current == null)
+            {
+                return false;
+            }
+
+            if (_pointerData == null)
+            {
+                _pointerData = new PointerEventData(EventSystem.current);
+            }
+
+            _pointerData.position = Mouse.current.position.ReadValue();
+            _pointerHits.Clear();
+            EventSystem.current.RaycastAll(_pointerData, _pointerHits);
+
+            foreach (RaycastResult hit in _pointerHits)
+            {
+                Selectable selectable = hit.gameObject.GetComponentInParent<Selectable>();
+                if (selectable != null && selectable.IsInteractable())
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>Reference HUD: mm:ss, blinking from 9:30, solid red once the boss is due.</summary>
@@ -162,6 +600,8 @@ namespace ProjectTA.Module.Hud
 
         private void Update()
         {
+            UpdatePointer();
+
             if (_clockText == null || _clockSeconds < 540)
             {
                 return;

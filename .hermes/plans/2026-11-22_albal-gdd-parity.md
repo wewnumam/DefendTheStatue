@@ -168,6 +168,93 @@ Verify: EditMode; play mode — buy to lv 3, cast skill 1.
 
 **M10 — Balance (§14, §17).** One 10-minute debug session → `balance_<stamp>.csv`; tune `GameConstants.asset` only. Acceptance: statue alive at 10:00 in a competent session, boss beatable, run length 600 ± 60 s.
 
+**M9b — play-test gaps closed 2026-11-22, not compiled/tested.**
+Reported after the first Editor run (teleport view wired OK):
+1. **HUD essence never updated.** `HudView._essenceText` was serialized as `{fileID: 0}` in `Gameplay.unity` — the field was never bound. Bound to `EssenceText (TMP)` (`fileID 1640509889`); the orphan `GoldText (TMP)` object left over from the rename is deactivated.
+2. **Skill upgrade overlay had no content and no buttons.** It shipped as an empty panel with a close button. Now:
+   - `GameStateUiView.ShowUpgradePanel(skills, statueLevel, essence)` builds, at runtime, the eight GDD §13 rows (`PlayerSkillConstants.BuildSkillLines`, now prefixed `Sword`/`Bow` + level) and a `UPGRADE STATUE` button that prints the next price.
+   - `GameStateUiController` gains `SetSkillConstants` (launcher hands over `_gameConstants.Model`), refreshes the overlay on `PlayerStatsChangedMessage` / `StatueUpgradedMessage`, and publishes `RequestUpgradeStatueMessage` on the button.
+   - The close button now publishes `RequestToggleSkillUpgradePanelMessage` instead of only hiding the panel — hiding it directly left `Time.timeScale` at the slow-motion value.
+   - `StatueModel.GetUpgradeCost(level)` added so the UI can read the ladder without an instance.
+3. **No way to see or buy a tower/wall.** Building existed only as an invisible E-on-cursor rule. Added a runtime buy menu in `BuildView` (Tower 20 / Wall 20 / Guard 20 / Trap 5), shown only while `GameState.Playing`, greying out what the purse cannot afford. New `BuildKind` enum + `BuildRules.CostOf`; `BuildController.Build(cursor, kind)` now builds the requested kind (the E key still means "nearest legal").
+4. Tests added: `BuildRulesTests.CostOf_MatchesTheGddPriceList`, `StatueModelTests.GetUpgradeCost_ReadsTheLadderWithoutAnInstance`.
+
+**M10a — balance log read 2026-11-22 (8 runs, 2026-11-21 14:45 → 2026-11-22 12:56).**
+Logs live at `%LOCALAPPDATA%Low/FeelableSoftware/DefendTheStatue/balance_*.csv`; columns `seconds,statue_hp,monsters,kills,boss`; the last row is a `summary` row.
+- 5 of 8 runs end in statue death at **120 s or less** (summary rows: 120 s / 50 kills, 60 s / 16, 60 s / 20, 30 s / 6, 0 s / 2). The other 3 files hold only the 0 s row — the session was quit before the run ended. No run reached 10:00, so the M10 acceptance criteria are not measurable yet.
+- Latest run (`balance_20261122_125430.csv`): 0 s 0 kills → 30 s 8 → 60 s 18 → 90 s 28 → 120 s 39 kills, statue 0.620, summary `120,-1,50,5` (statue destroyed). Kills land ≈0.3/s while the statue loses ≈0.4 HP/s.
+- Reading: the two UI gaps above made the run unplayable as designed (no essence counter, no visible build purchase, no skill overlay), so this log measures a blind player, not the tuned game. Re-run after M9b before touching any constant.
+
+**M11 — asset audit 2026-11-22 (GUID reference scan over `Assets/@Game/Resources`, 141 art/prefab/animation assets).**
+Method: every asset's `.meta` GUID searched across all `.cs/.unity/.prefab/.asset/.mat/.anim/.controller`. An asset with zero GUID hits is unused. **102 of 141 (72 %) are unused.** Nothing is loaded by string name (`Resources.Load` only appears for `SOGameConstants` and the two test fixtures), so the GUID scan is complete.
+
+| Group | Assets | Unused | Effect in game |
+|---|---|---|---|
+| `Prefabs/` | 8 | 0 | all instantiated |
+| `Modules/` | 4 | 0 | all instantiated |
+| `Animations/` | 9 | 0 | via `Deasor.controller` + `Pawn.controller` |
+| `Sprites/Monster` | 18 | 12 | **all three kinds draw as Deasor** — `MonsterView.prefab` has one SpriteRenderer + the Deasor animator, so Stacker/Waltroy art is dead. GDD §7 roles are invisible. |
+| `Sprites/Tree` | 6 | 5 | only Brown tree used — Purple/Magic/Arcana art dead, so the Purple tree (the one monsters refuse to eat) looks identical to a Red tree. |
+| `Sprites/Guard` | 4 | 3 | `Guard Buffed Idle/Attack` dead → no visual for GDD §21 "⚡x4 under Guard Empower". |
+| `Sprites/Tower` | 2 | 2 | `Tower.prefab` draws a built-in white square; idle + get-hit art dead. |
+| `Sprites/Spike` | 2 | 2 | `Trap.prefab` sprite GUID `dad419de…` resolves to nothing (missing asset) — trap art dead *and* the prefab reference is broken. |
+| `Sprites/Pawn` | 18 | 14 | all 8 skill sprites dead, bow idle dead, block dead → skills have no animation. |
+| `Sprites/UI (Health, Mana, Stamina)` | 7 | 7 | HUD bars are plain Sliders; the art bars are dead. |
+| `Sprites/UI (God Statue)` | 4 | 4 | statue bar art dead. |
+| `Sprites/UI (Pohon, Guard, Monster, Tower)` | 8 | 8 | no per-entity health bars exist at all. |
+| `Sprites/UI Skill Icon` | 26 | 26 | the 8 skill boxes, lock/unlock frames and weapon icons are dead; skill UI is a text list. |
+| `Sprites/UI Keyboard` / `UI Mouse` | 14 | 14 | control hints dead. |
+| `Sprites/Awal Mulai Permainan` | 7 | 5 | Exit/Setting/Start/Support buttons dead (text buttons instead). |
+| `Sprites/God Statue`, `Teleportaion`, `green-checkered-background` | 4 | 0 | used |
+
+Consequences worth acting on, in order:
+1. **Monster roles are indistinguishable** (highest gameplay cost — GDD §7 + §21). Needs a per-kind sprite swap in `MonsterView`/`MonsterPoolController`, keyed off `MonsterKind`.
+2. **Tree kinds are indistinguishable** (GDD §10). Needs per-kind sprite in `TreeView`.
+3. **Trap prefab sprite reference is broken** (`guid: dad419de…` resolves to no asset) — placeholder or dead link; verify in the Editor.
+4. **Tower/Spike use white-square placeholders** — one-line sprite swap each in the prefab.
+5. **Skill/UI art is entirely unused** — GDD §15 asks for 8 skill boxes with cooldown indicators and circular gauges. Wiring the 26 skill icons + the gauge art is a UI milestone, not a constant tweak.
+6. Cosmetic-but-cheap: Guard Empower buff sprite, Pawn skill animations, keyboard/mouse hints.
+
+Not a defect: the `Assets/NaughtyAttributes/Samples`, `Assets/Plugins/Demigiant/DOTween`, `Assets/TextMesh Pro`, `Assets/Welcome`, `Assets/Settings` assets are third-party/template payload and are out of scope.
+
+**M11a — monster + tree art wired 2026-11-22, not compiled.**
+1. `MonsterView` gains `MonsterKindSprites` (Kind/Idle/Attack/Hit) and `SetKind(MonsterKind)`. Only `_animatedKind` (Deasor) still drives art from the Animator; every other kind gets its sprite swapped and its Animator disabled. Sprite-only kinds hold the attack/hit pose for `_minOneShotSeconds` then fall back to idle — the same floor the Animator path uses. `MonsterPoolController.OnSpawnMonster` calls `SetKind` before `SetActive(true)`, so a recycled pooled object never shows the previous tenant's body.
+2. `MonsterView.prefab` `_kindSprites` filled with the real sub-sprites: Stacker idle/attack/get-hit, Waltroy idle/attack/get-hit, Deasor idle/attack/get-hit — 12 refs, each verified against the PNG's `internalIDToNameTable`.
+3. `TreeView` gains `_redSprite`/`_purpleSprite`/`_magicSprite`/`_arcanaSprite`; `SpawnTree` applies the kind's sprite and keeps the colour tint as fallback. Scene wired: Red = Brown Tree, Magic = Magic Tree, Arcana = Arcana Tree. **Purple has no art in the project** — left null on purpose, stays colour-only. Needs art.
+4. `Trap.prefab` sprite GUID was a typo (`…ab3b2ada…` vs the real `…ab53b2ada…`) — repaired; the spike art now resolves.
+5. `Tower.prefab` swapped its built-in white square for `Tower (Idle).png` and dropped the yellow tint to white.
+
+Still unused and known: 8 Pawn skill sprites, Guard buffed idle/attack, 19 UI bar/keyboard/mouse sprites, 4 menu button sprites, `Spike animation.png`, `Tower (Get Hit).png`, monster `Skill4` (mind-control) sprites, `Pawn Bow Idle`.
+
+**M11b — skill boxes wired 2026-11-22 (GDD §15).**
+1. New `SkillStateMessage` + `SkillBoxState` (`Module/Message/SkillStateMessages.cs`): slot, weapon, unlocked, required level, cooldown remaining/duration, active + active remaining. Eight boxes, sword 1-4 then bow 1-4.
+2. `PlayerSkillController` publishes it every 0.1 s from its tick (`SkillStateInterval`), reusing one array so the publish allocates nothing. Gate: `SkillConstants != null`.
+3. `HudConnector` subscribes/unsubscribes; `HudController.OnSkillState` forwards to the view.
+4. `HudView.SetSkillState` builds eight 56 px boxes at runtime, bottom-right, 4 columns × 2 rows. Icons load from `Resources.LoadAll<Sprite>("Sprites/UI Skill Icon/UI ICON/…")` — no scene wiring, because the art already lives under a Resources root. Box shows: icon, lock sprite when locked, `Lv N` when locked, cooldown seconds when cooling, active-remaining seconds while running. Frame colours: idle dark, cooling red, active green. Current weapon's boxes are bright, the other weapon's dimmed.
+5. `SetSkillGrid` now only prints the text fallback when the icon art fails to load; the eight-line text grid no longer overlaps the boxes.
+
+Gauge art (health/mana/stamina/statue fills) is **not** wired: the fill sprites exist but the sliders' geometry in the scene is unknown, so dropping a possibly-circular sprite into a horizontal fill needs one look in the Editor first. The stamina bar has no art at all.
+
+**M11c — circular gauges wired 2026-11-22 (GDD §15 "gauge melingkar").**
+Art check first: every UI PNG is a 1920×1080 texture, but each `.meta` already carries a **cropped sprite rect** (health fill 160×161, skill box fill 93×93, statue fill 1912×96, icons 189–546 wide). So `Resources.LoadAll<Sprite>` returns a tight sprite — no re-slicing needed, and the earlier "full-canvas mockup" worry was wrong. The health/mana/stamina fills are genuinely **round**, which is why they cannot be dropped into the scene's horizontal sliders.
+1. `HudView.EnsureGauges` builds three 88 px radial gauges (`Image.Type.Filled`, `FillMethod.Radial360`, origin Top, clockwise) with the authored frame on top and an HP/ST/MP label, fed from `SetStats`.
+2. Placement is `x = 316 + i*(88+10), y = 16` because the scene's three sliders all sit at the bottom-left corner as 300×80 rects at `(0,0)` — the round gauges start to their right instead of landing on top of them. That overlapping slider layout is itself a scene bug worth fixing in the Editor.
+3. Sliders still update as before; the gauges are additive, so nothing regresses if the art looks wrong.
+
+**M11d — skill-box chrome wired 2026-11-22.** Each box now draws `UI Skill Unlocked atau On/fill` under the icon and `…/frame` above it (93×93, pre-cropped), tinted by state: idle dark, cooling red, active green. Both are null-guarded — a missing art file leaves the flat tint instead of a white square. `CreateOverlay` gained a sprite overload; the gauge frame call site still uses the path overload.
+
+Still unwired: `UI (Pohon, Guard, Monster, Tower)` per-entity health bars, the keyboard/mouse hint art, the menu button art, and the `UI Weapon Used` frame.
+
+**M11e — GDD §21 state visuals wired 2026-11-22, not compiled.**
+1. **😇 Mind control** — `MonsterKindSprites.MindControlled` (+3 prefab refs from each kind's `Skill 4 Sword/Idle` PNG); `MonsterView.SetMindControlled` parks the Animator (it would repaint its own frame every tick), shows the ally body, and suppresses attack/hit/idle repaints while the effect holds; `SetKind` resets the flag so a recycled body never comes back possessed. `MonsterController.SetMindControlled` forwards it; the pool's tick calls it once per monster per frame beside the position read-back. One frame of lag against `CollectAllyAttacks`, which ticks the timer later in the same frame — irrelevant at 6 s.
+2. **⚡ Guard empower** — `GuardView.SetState` gained a 4-arg overload taking `empowered`; `GuardController.SyncViews` passes `guard.EmpowerRemaining > 0f`. The buffed body is `Resources.Load`ed from `Sprites/Guard/Buffed (Effect Bow Skill 4)/Guard Buffed Idle` (the PNG is `spriteMode: 1`, so a hand-written scene GUID would have been a guess); each spawn captures its default sprite so the guard reverts correctly, and a missing buffed sprite leaves the normal body up.
+
+Not done from §21: the 🌳 eating / 💨 fleeing icons on monsters, the yellow/red blink on the statue's heal zone (the HUD bar already turns red), and the ⚡x4 / state text labels.
+
+**M11f — heal-zone blink wired 2026-11-22, not compiled.** `StatueView` holds the `GodStatueZone` SpriteRenderer (wired in the scene as `_zoneRenderer: {fileID: 913928279}`) and flips between yellow and red every 0.45 s while `HealZoneTaintMessage.Tainted` holds — a two-state blink, not a fade, because that is what the GDD asks for. Route: `MonsterPoolController` already publishes the taint, `StatueConnector` now subscribes it to `StatueController.OnHealZoneTaint`. Worst case both the HUD bar and the ring go red, which is what a tainted zone should look like.
+
+Found while wiring, not fixed: `StatueView.SetRadius` scales its own `transform`, but the `Statue` object it sits on has **no renderer** — the visible ring is the separate root `GodStatueZone` at scale 2. So the "radius reads at a glance" growth has never been visible. Fix is one line (scale the ring instead) but it changes the ring's authored size, so it is a deliberate Editor look, not a blind patch.
+
 ---
 
 ## 3. Test policy

@@ -20,6 +20,8 @@ namespace ProjectTA.Module.Bullet
             base.SetView(view);
             view.SetCallback(OnCollideWithCollider);
             view.SetMonsterHitCallback(OnHitMonster);
+            view.SetTreeHitCallback(OnHitTree);
+            view.SetBossHitCallback(OnHitBoss);
         }
 
         private void OnCollideWithCollider()
@@ -33,6 +35,17 @@ namespace ProjectTA.Module.Bullet
         private void OnHitMonster(int monsterId, Vector2 hitPosition)
         {
             Publish(new RequestDamageMonsterMessage(monsterId, _view.Damage, hitPosition));
+        }
+
+        /// <summary>An arrow stuck in a tree chops it; the tree module owns the health.</summary>
+        private void OnHitTree(int treeId, Vector2 hitPosition)
+        {
+            Publish(new RequestTreeDamageMessage(treeId, _view.Damage, hitPosition));
+        }
+
+        private void OnHitBoss(Vector2 hitPosition)
+        {
+            Publish(new RequestDamageBossMessage(_view.Damage, hitPosition));
         }
     }
 }

@@ -268,7 +268,7 @@ namespace ProjectTA.Module.Guard
                 }
 
                 _view.SetPosition(i, guard.Position);
-                _view.SetState(i, guard.State, guard.IsArmed && !guard.IsDead);
+                _view.SetState(i, guard.State, guard.IsArmed && !guard.IsDead, guard.EmpowerRemaining > 0f);
             }
         }
     }

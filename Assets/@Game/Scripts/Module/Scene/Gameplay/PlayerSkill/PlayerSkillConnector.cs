@@ -12,6 +12,7 @@ namespace ProjectTA.Module.PlayerSkill
             Subscribe<RequestCastSkillMessage>(_playerSkill.OnRequestCastSkill);
             Subscribe<SwitchWeaponMessage>(_playerSkill.OnSwitchWeapon);
             Subscribe<PlayerStatsChangedMessage>(_playerSkill.OnPlayerStatsChanged);
+            Subscribe<CheatToggledMessage>(_playerSkill.OnCheatToggled);
             Subscribe<StatueUpgradedMessage>(_playerSkill.OnStatueUpgraded);
             Subscribe<GameStateMessage>(_playerSkill.OnGameState);
             Subscribe<RequestToggleSkillUpgradePanelMessage>(_playerSkill.OnRequestToggleSkillUpgradePanel);
@@ -22,6 +23,7 @@ namespace ProjectTA.Module.PlayerSkill
             Unsubscribe<RequestCastSkillMessage>(_playerSkill.OnRequestCastSkill);
             Unsubscribe<SwitchWeaponMessage>(_playerSkill.OnSwitchWeapon);
             Unsubscribe<PlayerStatsChangedMessage>(_playerSkill.OnPlayerStatsChanged);
+            Unsubscribe<CheatToggledMessage>(_playerSkill.OnCheatToggled);
             Unsubscribe<StatueUpgradedMessage>(_playerSkill.OnStatueUpgraded);
             Unsubscribe<GameStateMessage>(_playerSkill.OnGameState);
             Unsubscribe<RequestToggleSkillUpgradePanelMessage>(_playerSkill.OnRequestToggleSkillUpgradePanel);

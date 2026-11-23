@@ -22,6 +22,14 @@ namespace ProjectTA.Module.PlayerSkill
 
         private readonly bool[] _effectActive = new bool[WeaponCount * SlotCount];
 
+        /// <summary>
+        /// GDD §15 boxes. Reused so the ten-a-second republish allocates nothing, and throttled because
+        /// a countdown that updates at frame rate is noise on the bus.
+        /// </summary>
+        private readonly SkillBoxState[] _skillBoxes = new SkillBoxState[WeaponCount * SlotCount];
+        private const float SkillStateInterval = 0.1f;
+        private float _skillStateTimer;
+
         /// <summary>Owned here so E over the god statue and Tab cannot disagree about the panel state.</summary>
         private bool _isUpgradePanelOpen;
         private bool _noCooldown;
@@ -93,6 +101,47 @@ namespace ProjectTA.Module.PlayerSkill
         {
             _model.Tick(deltaTime);
             PublishEffectEnds();
+
+            _skillStateTimer += deltaTime;
+            if (_skillStateTimer < SkillStateInterval)
+            {
+                return;
+            }
+
+            _skillStateTimer = 0f;
+            PublishSkillState();
+        }
+
+        /// <summary>
+        /// GDD §15: the HUD needs each box's lock state, cooldown clock and running effect. Snapshotted
+        /// here because the view may not hold the skill model.
+        /// </summary>
+        private void PublishSkillState()
+        {
+            if (_model.SkillConstants == null)
+            {
+                return;
+            }
+
+            for (int weapon = 0; weapon < WeaponCount; weapon++)
+            {
+                var weaponKind = (EnumManager.WeaponKind)weapon;
+                for (int slot = 0; slot < SlotCount; slot++)
+                {
+                    var skillSlot = (EnumManager.SkillSlot)(slot + 1);
+                    _skillBoxes[weapon * SlotCount + slot] = new SkillBoxState(
+                        skillSlot,
+                        weaponKind,
+                        _model.IsUnlocked(skillSlot),
+                        _model.GetRequiredStatueLevel(skillSlot),
+                        _model.GetCooldownRemaining(weaponKind, skillSlot),
+                        _model.GetCooldownDuration(skillSlot),
+                        _model.IsEffectActive(weaponKind, skillSlot),
+                        _model.GetEffectRemaining(weaponKind, skillSlot));
+                }
+            }
+
+            Publish(new SkillStateMessage(_weapon, _skillBoxes));
         }
 
         private void OnCastRequested(EnumManager.SkillSlot slot)

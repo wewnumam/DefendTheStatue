@@ -172,5 +172,15 @@ namespace ProjectTA.Tests.EditMode
             Assert.That(BuildRules.PickMonsterKind(late, 0.1f),
                 Is.EqualTo(Utility.EnumManager.MonsterKind.Stacker));
         }
+
+        [Test]
+        public void CostOf_MatchesTheGddPriceList()
+        {
+            // The buy menu prints these, so a drift here is a visible wrong price.
+            Assert.That(BuildRules.CostOf(BuildKind.Tower), Is.EqualTo(20));
+            Assert.That(BuildRules.CostOf(BuildKind.Wall), Is.EqualTo(20));
+            Assert.That(BuildRules.CostOf(BuildKind.Guard), Is.EqualTo(20));
+            Assert.That(BuildRules.CostOf(BuildKind.Trap), Is.EqualTo(5));
+        }
     }
 }

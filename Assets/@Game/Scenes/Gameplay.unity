@@ -1151,7 +1151,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &444161667
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1169,9 +1169,9 @@ RectTransform:
   - {fileID: 1846666569}
   m_Father: {fileID: 852887330}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 194, y: -152}
   m_SizeDelta: {x: 340, y: 256}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &444161669
@@ -2649,9 +2649,9 @@ RectTransform:
   - {fileID: 1507715282}
   m_Father: {fileID: 444161667}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 166, y: -120}
   m_SizeDelta: {x: 300, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &888038301
@@ -2829,6 +2829,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ProjectTA.Module.Statue.StatueView
   _statue: {fileID: 900300003}
   _radius: 96
+  _zoneRenderer: {fileID: 913928279}
+  _zoneTaintedA: {r: 1, g: 0.85, b: 0.2, a: 1}
+  _zoneTaintedB: {r: 0.9, g: 0.15, b: 0.15, a: 1}
+  _zoneBlinkSeconds: 0.45
 --- !u!4 &900300003
 Transform:
   m_ObjectHideFlags: 0
@@ -2922,6 +2926,7 @@ MonoBehaviour:
   _camera: {fileID: 156453935}
   _godStatue: {fileID: 900300003}
   _statuePickRadius: 150
+  _showBuyMenu: 1
 --- !u!4 &900500003
 Transform:
   m_ObjectHideFlags: 0
@@ -3018,6 +3023,10 @@ MonoBehaviour:
   _purpleColor: {r: 0.6, g: 0.3, b: 0.9, a: 1}
   _magicColor: {r: 0.3, g: 0.55, b: 0.95, a: 1}
   _arcanaColor: {r: 0.95, g: 0.8, b: 0.2, a: 1}
+  _redSprite: {fileID: -7539172421424567058, guid: b729b8ed5a68bc840ba089cc16e948fb, type: 3}
+  _purpleSprite: {fileID: 0}
+  _magicSprite: {fileID: 3330949238368922130, guid: fb014d36ade2f6a47ad7a5d7872adab1, type: 3}
+  _arcanaSprite: {fileID: 6012053834749541577, guid: b536ba932909b41429f75cbedc42414c, type: 3}
 --- !u!4 &900700003
 Transform:
   m_ObjectHideFlags: 0
@@ -3114,6 +3123,7 @@ MonoBehaviour:
   _armedColor: {r: 1, g: 1, b: 1, a: 1}
   _recoveringColor: {r: 0.35, g: 0.9, b: 0.4, a: 1}
   _purgingColor: {r: 0.95, g: 0.3, b: 0.3, a: 1}
+  _buffedSprite: {fileID: 0}
 --- !u!4 &900900003
 Transform:
   m_ObjectHideFlags: 0
@@ -3538,7 +3548,7 @@ RectTransform:
   m_Father: {fileID: 1650333776}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0.232, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -4468,7 +4478,7 @@ RectTransform:
   m_Father: {fileID: 1507715282}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0.232, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -4737,7 +4747,7 @@ MonoBehaviour:
   _staminaSlider: {fileID: 888038301}
   _manaSlider: {fileID: 1846666570}
   _statueSlider: {fileID: 1711229911}
-  _essenceText: {fileID: 0}
+  _essenceText: {fileID: 1640509889}
   _arrowText: {fileID: 1640900279}
   _weaponText: {fileID: 1362675184}
 --- !u!1 &1427368824
@@ -5578,7 +5588,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1678005109
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5731,9 +5741,9 @@ RectTransform:
   - {fileID: 1362034815}
   m_Father: {fileID: 444161667}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 166, y: -40}
   m_SizeDelta: {x: 300, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1692543528
@@ -5984,7 +5994,7 @@ RectTransform:
   m_Father: {fileID: 1362034815}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0.232, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -6288,9 +6298,9 @@ RectTransform:
   - {fileID: 1650333776}
   m_Father: {fileID: 444161667}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 166, y: -200}
   m_SizeDelta: {x: 300, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1846666570

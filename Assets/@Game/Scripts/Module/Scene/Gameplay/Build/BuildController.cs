@@ -1,4 +1,4 @@
-using Agate.MVC.Base;
+﻿using Agate.MVC.Base;
 using ProjectTA.Message;
 using ProjectTA.Module.GameConstants;
 using ProjectTA.Module.Guard;
@@ -46,6 +46,8 @@ namespace ProjectTA.Module.Build
         {
             base.SetView(view);
             view.SetCallbacks(OnBuild, OnUpgrade);
+            view.SetBuildKindCallback(OnBuildKind);
+            view.SetBuyMenuVisible(false);
             ResetProgress();
         }
 
@@ -60,11 +62,13 @@ namespace ProjectTA.Module.Build
         public void OnStatueUpgraded(StatueUpgradedMessage message)
         {
             _statueLevel = message.Level;
+            _view?.RefreshBuyMenu(_essence, _freeBuild, _statueLevel);
         }
 
         public void OnPlayerStatsChanged(PlayerStatsChangedMessage message)
         {
             _essence = message.Essence;
+            _view?.RefreshBuyMenu(_essence, _freeBuild, _statueLevel);
         }
 
         public void OnCheatToggled(CheatToggledMessage message)
@@ -72,6 +76,7 @@ namespace ProjectTA.Module.Build
             if (message.Cheat == EnumManager.CheatType.FreeBuild)
             {
                 _freeBuild = message.Enabled;
+                _view?.RefreshBuyMenu(_essence, _freeBuild, _statueLevel);
             }
         }
 
@@ -163,9 +168,13 @@ namespace ProjectTA.Module.Build
 
         public void OnGameState(GameStateMessage message)
         {
-            if (message.GameState == EnumManager.GameState.Playing)
+            bool playing = message.GameState == EnumManager.GameState.Playing;
+            _view?.SetBuyMenuVisible(playing);
+
+            if (playing)
             {
                 ResetProgress();
+                _view?.RefreshBuyMenu(_essence, _freeBuild, _statueLevel);
             }
         }
 
@@ -174,6 +183,17 @@ namespace ProjectTA.Module.Build
         /// the same key opens the skill upgrade interface instead — nothing is built there.
         /// </summary>
         private void OnBuild(Vector2 cursor)
+        {
+            Build(cursor, BuildKind.Any);
+        }
+
+        /// <summary>Buy menu entry: build only the requested kind, at the cursor.</summary>
+        private void OnBuildKind(BuildKind kind)
+        {
+            Build(_view.CursorPosition, kind);
+        }
+
+        private void Build(Vector2 cursor, BuildKind kind)
         {
             if (_view.IsOverStatue(cursor))
             {
@@ -193,7 +213,8 @@ namespace ProjectTA.Module.Build
                     continue;
                 }
 
-                if (BuildRules.CanBuildTowerAt(t, _statueLevel) && CanAfford(BuildRules.TowerCost))
+                if ((kind == BuildKind.Any || kind == BuildKind.Tower)
+                    && BuildRules.CanBuildTowerAt(t, _statueLevel) && CanAfford(BuildRules.TowerCost))
                 {
                     for (int corner = 0; corner < TerritoryState.TowerCount; corner++)
                     {
@@ -213,7 +234,8 @@ namespace ProjectTA.Module.Build
                     }
                 }
 
-                if (CanBuildWallAt(t) && CanAfford(BuildRules.WallSegmentCost))
+                if ((kind == BuildKind.Any || kind == BuildKind.Wall)
+                    && CanBuildWallAt(t) && CanAfford(BuildRules.WallSegmentCost))
                 {
                     for (int segment = 0; segment < TerritoryState.WallSegmentCount; segment++)
                     {
@@ -239,7 +261,8 @@ namespace ProjectTA.Module.Build
             int trapGap = -1;
             float trapBestDistance = float.MaxValue;
 
-            if (slot < 0 && CanAfford(BuildRules.SpikeTrapCost))
+            if (slot < 0 && (kind == BuildKind.Any || kind == BuildKind.Trap)
+                && CanAfford(BuildRules.SpikeTrapCost))
             {
                 for (int t = 0; t < _layout.RingCount; t++)
                 {
@@ -272,7 +295,7 @@ namespace ProjectTA.Module.Build
             int guardCost = 0;
             float guardBestDistance = float.MaxValue;
 
-            if (slot < 0)
+            if (slot < 0 && (kind == BuildKind.Any || kind == BuildKind.Guard))
             {
                 int total = TotalGuardSlots();
 

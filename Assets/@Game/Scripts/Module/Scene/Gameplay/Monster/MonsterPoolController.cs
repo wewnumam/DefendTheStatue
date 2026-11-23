@@ -134,6 +134,10 @@ namespace ProjectTA.Module.Monster
                 // Physics owns the body, so the model reads back where it actually stands before it
                 // decides the next step: walls and neighbours have had their say by now.
                 _model.SetPosition(monster.Id, controller.ViewRef.Position);
+
+                // GDD §21: the ally body marks a monster under sword skill 4, whatever else it is doing.
+                controller.SetMindControlled(monster.IsMindControlled);
+
                 float multiplier = _slowFields.GetSpeedMultiplierAt(monster.Position, now);
 
                 Vector2 target = Vector2.zero;
@@ -310,6 +314,10 @@ namespace ProjectTA.Module.Monster
             if (controller != null)
             {
                 controller.Sync(monster.Position);
+
+                // GDD §7: the pool recycles one prefab, so the kind's body is applied before the object
+                // is shown. A recycled Stacker must not spend a frame wearing the Deasor sprite.
+                controller.ViewRef.SetKind(monster.Kind);
                 controller.ViewRef.gameObject.SetActive(true);
             }
 

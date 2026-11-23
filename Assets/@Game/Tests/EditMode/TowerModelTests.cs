@@ -25,7 +25,7 @@ namespace ProjectTA.Tests.EditMode
             Assert.That(_model.Constants.Size, Is.EqualTo(32f));
             Assert.That(_model.Constants.AttackRange, Is.EqualTo(300f));
             Assert.That(_model.Constants.AttackRateFrames, Is.EqualTo(50));
-            Assert.That(_model.Constants.Damage, Is.EqualTo(15f));
+            Assert.That(_model.Constants.Damage, Is.EqualTo(1f));
             Assert.That(GameTime.FramesToSeconds(50), Is.EqualTo(50f / 60f).Within(1e-5f));
         }
 
@@ -34,7 +34,7 @@ namespace ProjectTA.Tests.EditMode
         {
             _model.Add(Vector2.zero, 0, 0);
 
-            Assert.That(_model.TryFire(0, new Vector2(100f, 0f)), Is.EqualTo(15f));
+            Assert.That(_model.TryFire(0, new Vector2(100f, 0f)), Is.EqualTo(1f));
         }
 
         [Test]
@@ -49,7 +49,7 @@ namespace ProjectTA.Tests.EditMode
 
             _model.TickCooldowns(cadence);
             Assert.That(_model.Get(0).IsReadyToFire, Is.True);
-            Assert.That(_model.TryFire(0, new Vector2(100f, 0f)), Is.EqualTo(15f));
+            Assert.That(_model.TryFire(0, new Vector2(100f, 0f)), Is.EqualTo(1f));
         }
 
         [Test]
