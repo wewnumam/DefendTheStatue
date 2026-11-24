@@ -71,6 +71,12 @@ MonoBehaviour:
     _size: 1
     _statueSize: 3
     _speedPerSecond: 5
+    _attackIntervalSeconds: 1
+    _stopPadding: 1
+    _attackReachPadding: 2
+    _spawnOffset: 10
+    _cameraSpawnDistance: 15
+    _healHealthFraction: 0.3
     _kinds:
     - _health: 3
       _speedMultiplier: 1
@@ -94,12 +100,6 @@ MonoBehaviour:
       _playerDamage: 4
       _guardDamage: 4
     _retreatSpeedMultiplier: 1.5
-    _attackIntervalSeconds: 1
-    _stopPadding: 1
-    _attackReachPadding: 2
-    _spawnOffset: 10
-    _cameraSpawnDistance: 15
-    _healHealthFraction: 0.3
     _healCooldownSeconds: 1.5
   _territoryConstants:
     _ringSizes:
@@ -107,10 +107,10 @@ MonoBehaviour:
     - {x: 200, y: 150}
     - {x: 400, y: 300}
     _gapHalfWidth: 15
-    _wallThickness: 4
+    _wallThickness: 2
     _wallHealth: 100
   _towerConstants:
-    _size: 32
+    _size: 2
     _health: 40
     _attackRange: 300
     _attackRateFrames: 50
@@ -158,6 +158,15 @@ MonoBehaviour:
     _damage: 1
     _attackRange: 250
     _attackIntervalSeconds: 1
+    _healthByLevel:
+    - 100
+    - 150
+    - 200
+    _speedMultiplier: 2
+    _retreatSpeedMultiplier: 1.5
+    _retreatHealthFraction: 0.3
+    _returnHealthFraction: 0.7
+    _healFractionPerSecond: 0.1
   _bossConstants:
     _maxHealth: 20
     _damage: 10
@@ -166,21 +175,7 @@ MonoBehaviour:
     _attackRange: 40
     _spawnDistance: 60
     _summonRadius: 20
-    _escort:
-    - 0
-    - 0
-    - 0
-    - 0
-    - 1
-    - 1
-    - 2
-    - 2
-    _phase1Summons:
-    - 0
-    - 0
-    _phase2Summons:
-    - 0
-    - 1
-    _phase3Summons:
-    - 1
-    - 2
+    _escort: 0000000000000000000000000000000001000000010000000200000002000000i
+    _phase1Summons: 0000000000000000i
+    _phase2Summons: 0000000001000000i
+    _phase3Summons: 0100000002000000i

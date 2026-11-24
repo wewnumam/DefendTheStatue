@@ -10,12 +10,16 @@ using UnityEngine;
 namespace ProjectTA.Module.Build
 {
     /// <summary>
-    /// Turns one key press into the nearest legal build. Everything it needs (unlocked rings, what
-    /// is already built, statue level, essence) is mirrored from messages, so the gates stay pure
-    /// BuildRules calls and this module holds no reference to any other controller.
+    /// Turns one key press into the nearest legal build, the way the reference game does it: the pawn
+    /// must stand next to a slot, and E spends essence on whatever is closest. Everything it needs
+    /// (unlocked rings, what is already built, statue level, essence) is mirrored from messages, so the
+    /// gates stay pure BuildRules calls and this module holds no reference to any other controller.
     /// </summary>
     public class BuildController : ObjectController<BuildController, BuildView>
     {
+        /// <summary>Reference game: how close the pawn must stand to a tower corner, wall or foundation.</summary>
+        private const float InteractRadius = 60f;
+
         /// <summary>Ring geometry comes from the GameConstants asset, so the ring count is not fixed here.</summary>
         private TerritoryLayout _layout = new TerritoryLayout(new TerritoryConstants());
         private GuardLayout _guardLayout = new GuardLayout(new TerritoryConstants());
@@ -28,6 +32,7 @@ namespace ProjectTA.Module.Build
         private int _statueLevel = StatueModel.MinLevel;
         private int _essence;
         private bool _freeBuild;
+        private Transform _player;
 
         public void InitModel(IGameConstantsModel gameConstants)
         {
@@ -42,12 +47,16 @@ namespace ProjectTA.Module.Build
             ResetProgress();
         }
 
+        public void SetPlayerTransform(Transform player)
+        {
+            _player = player;
+        }
+
         public override void SetView(BuildView view)
         {
             base.SetView(view);
-            view.SetCallbacks(OnBuild, OnUpgrade);
-            view.SetBuildKindCallback(OnBuildKind);
-            view.SetBuyMenuVisible(false);
+            view.SetCallbacks(OnInteract, OnUpgrade);
+            view.SetTickCallback(OnTick);
             ResetProgress();
         }
 
@@ -62,13 +71,11 @@ namespace ProjectTA.Module.Build
         public void OnStatueUpgraded(StatueUpgradedMessage message)
         {
             _statueLevel = message.Level;
-            _view?.RefreshBuyMenu(_essence, _freeBuild, _statueLevel);
         }
 
         public void OnPlayerStatsChanged(PlayerStatsChangedMessage message)
         {
             _essence = message.Essence;
-            _view?.RefreshBuyMenu(_essence, _freeBuild, _statueLevel);
         }
 
         public void OnCheatToggled(CheatToggledMessage message)
@@ -76,7 +83,6 @@ namespace ProjectTA.Module.Build
             if (message.Cheat == EnumManager.CheatType.FreeBuild)
             {
                 _freeBuild = message.Enabled;
-                _view?.RefreshBuyMenu(_essence, _freeBuild, _statueLevel);
             }
         }
 
@@ -131,6 +137,16 @@ namespace ProjectTA.Module.Build
             return _freeBuild || _essence >= cost;
         }
 
+        private static int GuardCostForLevel(int level)
+        {
+            if (level >= 10)
+            {
+                return BuildRules.GuardCostLevel10;
+            }
+
+            return level >= 5 ? BuildRules.GuardCostLevel5 : BuildRules.GuardCostLevel3;
+        }
+
         private void SpendEssence(int cost)
         {
             if (!_freeBuild)
@@ -166,45 +182,141 @@ namespace ProjectTA.Module.Build
             }
         }
 
+        /// <summary>
+        /// GDD §16 Build All. Reuses the normal build pipeline for every empty slot on every unlocked
+        /// ring — towers first, then walls, then the traps that need the walls — and skips the cost.
+        /// Guards are recruited from statue-granted foundations, not built, so they stay out.
+        /// </summary>
+        public void OnDevBuildAll(DevBuildAllMessage message)
+        {
+            for (int t = 0; t < _layout.RingCount; t++)
+            {
+                if (!_unlocked[t])
+                {
+                    continue;
+                }
+
+                for (int corner = 0; corner < TerritoryState.TowerCount; corner++)
+                {
+                    if (_towersBuilt[t, corner])
+                    {
+                        continue;
+                    }
+
+                    MarkTower(t, corner);
+                    Publish(new TowerBuiltMessage(t, corner, _layout.GetCornerPosition(t, corner)));
+                }
+
+                for (int segment = 0; segment < TerritoryState.WallSegmentCount; segment++)
+                {
+                    if (_wallsBuilt[t, segment])
+                    {
+                        continue;
+                    }
+
+                    _layout.GetWallSegment(t, segment, out Vector2 from, out Vector2 to);
+                    MarkWall(t, segment);
+                    Publish(new WallSegmentBuiltMessage(t, segment, from, to));
+                }
+
+                // One trap per wall gap; the model counts gaps in the same four slots as towers.
+                for (int gap = 0; gap < TerritoryState.TowerCount; gap++)
+                {
+                    if (_trapsBuilt[t, gap])
+                    {
+                        continue;
+                    }
+
+                    _trapsBuilt[t, gap] = true;
+                    Publish(new TrapBuiltMessage(t, gap, _layout.GetWallGap(t, gap)));
+                }
+            }
+        }
+
         public void OnGameState(GameStateMessage message)
         {
-            bool playing = message.GameState == EnumManager.GameState.Playing;
-            _view?.SetBuyMenuVisible(playing);
-
-            if (playing)
+            if (message.GameState == EnumManager.GameState.Playing)
             {
                 ResetProgress();
-                _view?.RefreshBuyMenu(_essence, _freeBuild, _statueLevel);
             }
         }
 
         /// <summary>
-        /// Builds whichever legal slot, tower or wall, sits closest to the cursor. Over the god statue
-        /// the same key opens the skill upgrade interface instead — nothing is built there.
+        /// E is one context key, straight from the reference game: the nearest thing within reach wins,
+        /// the statue as the baseline. Nothing in range means nothing happens.
         /// </summary>
-        private void OnBuild(Vector2 cursor)
+        private void OnInteract()
         {
-            Build(cursor, BuildKind.Any);
-        }
+            if (_player == null)
+            {
+                return;
+            }
 
-        /// <summary>Buy menu entry: build only the requested kind, at the cursor.</summary>
-        private void OnBuildKind(BuildKind kind)
-        {
-            Build(_view.CursorPosition, kind);
-        }
+            if (!FindTarget(_player.position, out BuildKind kind, out int territory, out int slot, out _, out _))
+            {
+                return;
+            }
 
-        private void Build(Vector2 cursor, BuildKind kind)
-        {
-            if (_view.IsOverStatue(cursor))
+            if (kind == BuildKind.Any)
             {
                 Publish(new RequestToggleSkillUpgradePanelMessage());
                 return;
             }
 
-            int territory = -1;
-            int slot = -1;
-            bool isTower = false;
-            float bestDistance = float.MaxValue;
+            Build(kind, territory, slot);
+        }
+
+        /// <summary>Drives the floating "E" prompt: same target the key press would act on.</summary>
+        private void OnTick(float deltaSeconds)
+        {
+            if (_view == null)
+            {
+                return;
+            }
+
+            if (_player == null
+                || !FindTarget(_player.position, out BuildKind kind, out _, out _, out Vector2 position, out int cost))
+            {
+                _view.HidePrompt();
+                return;
+            }
+
+            string label = kind == BuildKind.Any ? null : _freeBuild ? "FREE" : cost + "e";
+            _view.ShowPrompt(position, label);
+        }
+
+        /// <summary>
+        /// Nearest interactable within reach of <paramref name="at"/>: statue, tower corner, wall
+        /// segment, trap gap or guard foundation. Kind stays <see cref="BuildKind.Any"/> for the statue.
+        /// </summary>
+        private bool FindTarget(
+            Vector2 at,
+            out BuildKind kind,
+            out int territory,
+            out int slot,
+            out Vector2 position,
+            out int cost)
+        {
+            float bestSquared = float.MaxValue;
+            bool statue = false;
+            kind = BuildKind.Any;
+            territory = -1;
+            slot = -1;
+            position = Vector2.zero;
+            cost = 0;
+
+            if (_view != null && _view.HasStatue)
+            {
+                float squared = (_view.StatuePosition - at).sqrMagnitude;
+                if (squared <= _view.StatuePickRadius * _view.StatuePickRadius)
+                {
+                    bestSquared = squared;
+                    statue = true;
+                    position = _view.StatuePosition;
+                }
+            }
+
+            float reach = InteractRadius * InteractRadius;
 
             for (int t = 0; t < _layout.RingCount; t++)
             {
@@ -213,8 +325,7 @@ namespace ProjectTA.Module.Build
                     continue;
                 }
 
-                if ((kind == BuildKind.Any || kind == BuildKind.Tower)
-                    && BuildRules.CanBuildTowerAt(t, _statueLevel) && CanAfford(BuildRules.TowerCost))
+                if (BuildRules.CanBuildTowerAt(t, _statueLevel))
                 {
                     for (int corner = 0; corner < TerritoryState.TowerCount; corner++)
                     {
@@ -223,19 +334,22 @@ namespace ProjectTA.Module.Build
                             continue;
                         }
 
-                        float distance = (_layout.GetCornerPosition(t, corner) - cursor).sqrMagnitude;
-                        if (distance < bestDistance)
+                        Vector2 cornerPosition = _layout.GetCornerPosition(t, corner);
+                        float squared = (cornerPosition - at).sqrMagnitude;
+                        if (squared <= reach && squared < bestSquared)
                         {
-                            bestDistance = distance;
+                            bestSquared = squared;
+                            statue = false;
+                            kind = BuildKind.Tower;
                             territory = t;
                             slot = corner;
-                            isTower = true;
+                            position = cornerPosition;
+                            cost = BuildRules.TowerCost;
                         }
                     }
                 }
 
-                if ((kind == BuildKind.Any || kind == BuildKind.Wall)
-                    && CanBuildWallAt(t) && CanAfford(BuildRules.WallSegmentCost))
+                if (CanBuildWallAt(t))
                 {
                     for (int segment = 0; segment < TerritoryState.WallSegmentCount; segment++)
                     {
@@ -244,34 +358,25 @@ namespace ProjectTA.Module.Build
                             continue;
                         }
 
-                        _layout.GetWallSegment(t, segment, out Vector2 start, out Vector2 end);
-                        float distance = ((start + end) * 0.5f - cursor).sqrMagnitude;
-                        if (distance < bestDistance)
+                        _layout.GetWallSegment(t, segment, out Vector2 from, out Vector2 to);
+                        Vector2 midpoint = (from + to) * 0.5f;
+                        float squared = (midpoint - at).sqrMagnitude;
+                        if (squared <= reach && squared < bestSquared)
                         {
-                            bestDistance = distance;
+                            bestSquared = squared;
+                            statue = false;
+                            kind = BuildKind.Wall;
                             territory = t;
                             slot = segment;
-                            isTower = false;
+                            position = midpoint;
+                            cost = BuildRules.WallSegmentCost;
                         }
                     }
                 }
-            }
 
-            int trapTerritory = -1;
-            int trapGap = -1;
-            float trapBestDistance = float.MaxValue;
-
-            if (slot < 0 && (kind == BuildKind.Any || kind == BuildKind.Trap)
-                && CanAfford(BuildRules.SpikeTrapCost))
-            {
-                for (int t = 0; t < _layout.RingCount; t++)
+                // Four gaps per ring: the layout folds the eight wall halves into four openings.
+                if (AllWallsBuilt(t))
                 {
-                    if (!_unlocked[t] || !AllWallsBuilt(t))
-                    {
-                        continue;
-                    }
-
-                    // Four gaps per ring: the layout folds the eight wall halves into four openings.
                     for (int gap = 0; gap < TerritoryState.TowerCount; gap++)
                     {
                         if (_trapsBuilt[t, gap])
@@ -279,87 +384,106 @@ namespace ProjectTA.Module.Build
                             continue;
                         }
 
-                        float distance = (_layout.GetWallGap(t, gap) - cursor).sqrMagnitude;
-                        if (distance < trapBestDistance)
+                        Vector2 gapPosition = _layout.GetWallGap(t, gap);
+                        float squared = (gapPosition - at).sqrMagnitude;
+                        if (squared <= reach && squared < bestSquared)
                         {
-                            trapBestDistance = distance;
-                            trapTerritory = t;
-                            trapGap = gap;
+                            bestSquared = squared;
+                            statue = false;
+                            kind = BuildKind.Trap;
+                            territory = t;
+                            slot = gap;
+                            position = gapPosition;
+                            cost = BuildRules.SpikeTrapCost;
                         }
                     }
                 }
             }
 
-            int guardIndex = -1;
-            int guardLevel = 0;
-            int guardCost = 0;
-            float guardBestDistance = float.MaxValue;
-
-            if (slot < 0 && (kind == BuildKind.Any || kind == BuildKind.Guard))
+            int guardSlots = TotalGuardSlots();
+            for (int i = 0; i < guardSlots; i++)
             {
-                int total = TotalGuardSlots();
-
-                for (int i = 0; i < total; i++)
+                if (_guardsBuilt[i])
                 {
-                    if (_guardsBuilt[i])
-                    {
-                        continue;
-                    }
+                    continue;
+                }
 
-                    int level = GuardLevelForSlot(i);
-                    int slotInGroup = i - FirstSlotOfLevel(level);
-                    int cost = level >= 10
-                        ? BuildRules.GuardCostLevel10
-                        : level >= 5 ? BuildRules.GuardCostLevel5 : BuildRules.GuardCostLevel3;
-                    if (!CanAfford(cost))
-                    {
-                        continue;
-                    }
-
-                    Vector2 position = _guardLayout.GetFoundationPosition(level, slotInGroup, level);
-                    float distance = (position - cursor).sqrMagnitude;
-                    if (distance < guardBestDistance)
-                    {
-                        guardBestDistance = distance;
-                        guardIndex = i;
-                        guardLevel = level;
-                        guardCost = cost;
-                    }
+                int level = GuardLevelForSlot(i);
+                Vector2 foundation = _guardLayout.GetFoundationPosition(level, i - FirstSlotOfLevel(level), level);
+                float squared = (foundation - at).sqrMagnitude;
+                if (squared <= reach && squared < bestSquared)
+                {
+                    bestSquared = squared;
+                    statue = false;
+                    kind = BuildKind.Guard;
+                    territory = -1;
+                    slot = i;
+                    position = foundation;
+                    cost = GuardCostForLevel(level);
                 }
             }
 
-            if (guardIndex >= 0 && guardBestDistance <= trapBestDistance)
+            if (statue)
             {
-                SpendEssence(guardCost);
-                Publish(new GuardBuiltMessage(
-                    guardIndex,
-                    guardLevel,
-                    _guardLayout.GetFoundationPosition(guardLevel, guardIndex - FirstSlotOfLevel(guardLevel), guardLevel)));
-                return;
+                kind = BuildKind.Any;
+                return true;
             }
 
-            if (trapTerritory >= 0)
-            {
-                SpendEssence(BuildRules.SpikeTrapCost);
-                Publish(new TrapBuiltMessage(trapTerritory, trapGap, _layout.GetWallGap(trapTerritory, trapGap)));
-                return;
-            }
+            return kind != BuildKind.Any;
+        }
 
-            if (slot < 0)
+        private void Build(BuildKind kind, int territory, int slot)
+        {
+            switch (kind)
             {
-                return;
-            }
+                case BuildKind.Guard:
+                {
+                    int level = GuardLevelForSlot(slot);
+                    int cost = GuardCostForLevel(level);
+                    if (!CanAfford(cost))
+                    {
+                        return;
+                    }
 
-            if (isTower)
-            {
-                SpendEssence(BuildRules.TowerCost);
-                Publish(new TowerBuiltMessage(territory, slot, _layout.GetCornerPosition(territory, slot)));
-                return;
-            }
+                    SpendEssence(cost);
+                    Publish(new GuardBuiltMessage(
+                        slot,
+                        level,
+                        _guardLayout.GetFoundationPosition(level, slot - FirstSlotOfLevel(level), level)));
+                    return;
+                }
 
-            _layout.GetWallSegment(territory, slot, out Vector2 from, out Vector2 to);
-            SpendEssence(BuildRules.WallSegmentCost);
-            Publish(new WallSegmentBuiltMessage(territory, slot, from, to));
+                case BuildKind.Trap:
+                    if (!CanAfford(BuildRules.SpikeTrapCost))
+                    {
+                        return;
+                    }
+
+                    SpendEssence(BuildRules.SpikeTrapCost);
+                    Publish(new TrapBuiltMessage(territory, slot, _layout.GetWallGap(territory, slot)));
+                    return;
+
+                case BuildKind.Tower:
+                    if (!CanAfford(BuildRules.TowerCost))
+                    {
+                        return;
+                    }
+
+                    SpendEssence(BuildRules.TowerCost);
+                    Publish(new TowerBuiltMessage(territory, slot, _layout.GetCornerPosition(territory, slot)));
+                    return;
+
+                case BuildKind.Wall:
+                    if (!CanAfford(BuildRules.WallSegmentCost))
+                    {
+                        return;
+                    }
+
+                    _layout.GetWallSegment(territory, slot, out Vector2 from, out Vector2 to);
+                    SpendEssence(BuildRules.WallSegmentCost);
+                    Publish(new WallSegmentBuiltMessage(territory, slot, from, to));
+                    return;
+            }
         }
 
         private void OnUpgrade()

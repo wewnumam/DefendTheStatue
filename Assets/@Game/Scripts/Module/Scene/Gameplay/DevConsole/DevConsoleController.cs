@@ -95,6 +95,14 @@ namespace ProjectTA.Module.DevConsole
                 case DevConsoleAction.MaxLevel:
                     Publish(new DevMaxLevelMessage());
                     break;
+
+                case DevConsoleAction.UnlockAll:
+                    Publish(new DevUnlockAllMessage());
+                    break;
+
+                case DevConsoleAction.BuildAll:
+                    Publish(new DevBuildAllMessage());
+                    break;
             }
         }
     }

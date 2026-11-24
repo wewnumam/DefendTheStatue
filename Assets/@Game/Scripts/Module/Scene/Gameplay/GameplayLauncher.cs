@@ -125,6 +125,7 @@ namespace ProjectTA.Scene.Gameplay
 
         protected override IEnumerator LaunchScene()
         {
+            EnsureEventSystem();
             Publish(new GameStateMessage(EnumManager.GameState.Playing));
 
             SceneManager.SetActiveScene(SceneManager.GetSceneByName(SceneName));
@@ -160,6 +161,7 @@ namespace ProjectTA.Scene.Gameplay
             _statue.SetView(_view.StatueView);
             _build.InitModel(_gameConstants.Model);
             _build.SetView(_view.BuildView);
+            _build.SetPlayerTransform(_view.PlayerCharacterView.transform);
             _tower.InitModel(_gameConstants.Model);
             _tower.SetView(_view.TowerView);
             _tree.InitModel(_gameConstants.Model);
@@ -202,6 +204,24 @@ namespace ProjectTA.Scene.Gameplay
         private void OnMainMenu()
         {
             SceneLoader.Instance.LoadScene(TagManager.SCENE_MAINMENU);
+        }
+
+        /// <summary>
+        /// The Gameplay scene ships no EventSystem, so every runtime button (buy menu, Upgrade Statue)
+        /// rendered but never got a click. Created before any panel is built; the UI input module
+        /// assigns its own default actions on enable.
+        /// </summary>
+        private static void EnsureEventSystem()
+        {
+            if (UnityEngine.EventSystems.EventSystem.current != null)
+            {
+                return;
+            }
+
+            new UnityEngine.GameObject(
+                "EventSystem",
+                typeof(UnityEngine.EventSystems.EventSystem),
+                typeof(UnityEngine.InputSystem.UI.InputSystemUIInputModule));
         }
     }
 }

@@ -164,7 +164,8 @@ Verify: EditMode; play mode — buy to lv 3, cast skill 1.
 
 **M9 — partially done on disk 2026-11-22, not compiled/tested.**
 - Done: skill grid text (8 lines, sword + bow, unlock level + mana cost) built at runtime; statue bar turns red on `HealZoneTaintMessage`; timer starts red at 9:00 (was 9:30); results screen gains per-kind kills, deaths and max mana (`RunStats` + `Format`, fed by `MonsterKilledMessage.Kind` and the new `PlayerDiedMessage`); `CheatType.InfiniteEssence` flag wired through `PlayerCharacterModel.TrySpendEssence` and the console panel.
-- Still open (all need Editor work, not code): circular gauges, per-skill cooldown countdown (needs a skill-state message), monster state icons (eating/retreat/mind-controlled) — art-dependent, guard state circles are already colour-coded in `GuardView`, DevConsole `Unlock All` (map to `DevMaxLevelMessage`) and `Build All` actions.
+- Still open (all need Editor work, not code): circular gauges, per-skill cooldown countdown (needs a skill-state message), monster state icons (eating/retreat/mind-controlled) — art-dependent, guard state circles are already colour-coded in `GuardView`.
+- Console now covers all 16 GDD §16 entries: `UnlockAll` sets `PlayerSkillModel.UnlockAll` (overrides the statue-level gate, cleared by `Reset`), `BuildAll` publishes the normal tower/wall/trap build messages for every unlocked ring at no cost.
 
 **M10 — Balance (§14, §17).** One 10-minute debug session → `balance_<stamp>.csv`; tune `GameConstants.asset` only. Acceptance: statue alive at 10:00 in a competent session, boss beatable, run length 600 ± 60 s.
 

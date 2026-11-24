@@ -3,7 +3,7 @@ using ProjectTA.Utility;
 
 namespace ProjectTA.Module.DevConsole
 {
-    /// <summary>The eight console actions, in panel order.</summary>
+    /// <summary>The ten console actions, in panel order (GDD §16).</summary>
     public enum DevConsoleAction
     {
         AddEssence = 0,
@@ -13,7 +13,9 @@ namespace ProjectTA.Module.DevConsole
         KillAll = 4,
         SpawnBoss = 5,
         KillBoss = 6,
-        MaxLevel = 7
+        MaxLevel = 7,
+        UnlockAll = 8,
+        BuildAll = 9
     }
 
     /// <summary>

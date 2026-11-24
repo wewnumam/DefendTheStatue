@@ -24,7 +24,12 @@ mkdir -p "$S"
   echo "-r:\"$NUNIT\""
   echo "-r:\"$DOTWEEN\""
   for f in "$U"/Managed/UnityEngine/*.dll; do echo "-r:\"$f\""; done
-  for f in "$P"/Library/ScriptAssemblies/*.dll; do echo "-r:\"$f\""; done
+  for f in "$P"/Library/ScriptAssemblies/*.dll; do
+    # Skip Unity's last build of the project itself: the harness compiles Assets/@Game from source,
+    # and a stale ProjectTA.dll would win the binding and block tests for newly added methods.
+    case "$(basename "$f")" in ProjectTA*) continue ;; esac
+    echo "-r:\"$f\""
+  done
   find "$P/Assets/@Game" -name '*.cs' -not -path '*/Editor/*' | sed 's|^|"|;s|$|"|'
 } > "$RSP"
 

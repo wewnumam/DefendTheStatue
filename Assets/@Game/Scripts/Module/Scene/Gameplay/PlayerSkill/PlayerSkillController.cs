@@ -292,6 +292,13 @@ namespace ProjectTA.Module.PlayerSkill
             }
         }
 
+        /// <summary>GDD §16 Unlock All: the panel must show the boxes open the same frame.</summary>
+        public void OnDevUnlockAll(DevUnlockAllMessage message)
+        {
+            _model.SetUnlockAll(true);
+            PublishSkillState();
+        }
+
         public void OnPlayerStatsChanged(PlayerStatsChangedMessage message)
         {
             _mana = message.Mana;

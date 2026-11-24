@@ -38,4 +38,14 @@ namespace ProjectTA.Message
     public struct DevMaxLevelMessage
     {
     }
+
+    /// <summary>GDD §16 Unlock All: every skill castable, whatever the statue level.</summary>
+    public struct DevUnlockAllMessage
+    {
+    }
+
+    /// <summary>GDD §16 Build All: every tower, wall and trap on the unlocked rings, free.</summary>
+    public struct DevBuildAllMessage
+    {
+    }
 }

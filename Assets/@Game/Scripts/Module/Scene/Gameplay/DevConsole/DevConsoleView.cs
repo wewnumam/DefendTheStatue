@@ -34,7 +34,9 @@ namespace ProjectTA.Module.DevConsole
             "Kill all monsters",
             "Spawn boss",
             "Kill boss",
-            "Max statue level"
+            "Max statue level",
+            "Unlock all skills",
+            "Build all structures"
         };
 
         private readonly bool[] _flags = new bool[DevConsoleModel.FlagCount];
@@ -89,7 +91,7 @@ namespace ProjectTA.Module.DevConsole
                 return;
             }
 
-            GUILayout.BeginArea(new Rect(12f, 12f, 280f, 560f), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(12f, 12f, 280f, 660f), GUI.skin.box);
             GUILayout.Label("DEV CONSOLE  (F1)");
 
             GUILayout.Space(4f);

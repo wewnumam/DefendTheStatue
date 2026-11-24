@@ -58,6 +58,21 @@ namespace ProjectTA.Tests.EditMode
         }
 
         [Test]
+        public void UnlockAll_OpensEverySkillAtLevelOneAndResetClosesThem()
+        {
+            Assert.That(_model.IsUnlocked(Skill1), Is.False);
+
+            _model.SetUnlockAll(true);
+            Assert.That(_model.IsUnlocked(Skill1), Is.True);
+            Assert.That(_model.IsUnlocked(Skill4), Is.True);
+            Assert.That(_model.CanCast(Sword, Skill4, 50f, false), Is.True);
+
+            _model.Reset();
+            Assert.That(_model.UnlockAll, Is.False);
+            Assert.That(_model.IsUnlocked(Skill1), Is.False);
+        }
+
+        [Test]
         public void ManaCosts_MatchReferenceValues()
         {
             Assert.That(_model.GetManaCost(Skill1), Is.EqualTo(5f));

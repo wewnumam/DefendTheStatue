@@ -8,109 +8,83 @@ using UnityEngine.UI;
 namespace ProjectTA.Module.Build
 {
     /// <summary>
-    /// Read-only view: reports where the cursor is and when the player asked to build or upgrade.
-    /// The buy menu is built at runtime so no scene wiring is needed for it.
-    /// ponytail: raw keyboard reads, because there is no authored build menu. Route E and F through
-    /// InputController once the menu lands in the scene.
+    /// Read-only view: reports that the pawn pressed the interact key and floats the reference game's
+    /// golden "E" prompt over whatever the pawn can build. No build menu — every rule and price lives
+    /// in the controller.
+    /// ponytail: raw keyboard reads, because there is no authored build UI. Route E and F through
+    /// InputController if they ever need rebinding.
     /// </summary>
     public class BuildView : BaseView
     {
-        [SerializeField] private Camera _camera;
-
         [Header("God statue")]
         [SerializeField] private Transform _godStatue;
         [SerializeField] private float _statuePickRadius = 150f;
 
-        [Header("Buy menu")]
-        [SerializeField] private bool _showBuyMenu = true;
+        [Header("Interact prompt")]
+        /// <summary>World units above the target. The reference game uses 40 px; 1 unit is ~45 px here.</summary>
+        [SerializeField] private float _promptOffsetY = 1f;
+        [SerializeField] private Color _promptColor = new Color(1f, 0.843f, 0f);
 
-        private static readonly BuildKind[] MenuKinds =
-        {
-            BuildKind.Tower, BuildKind.Wall, BuildKind.Guard, BuildKind.Trap
-        };
-
-        private UnityAction<Vector2> _onBuild;
+        private UnityAction _onInteract;
         private UnityAction _onUpgrade;
-        private UnityAction<BuildKind> _onBuildKind;
+        private UnityAction<float> _onTick;
 
-        private GameObject _menuRoot;
-        private TMP_Text _menuHint;
-        private readonly Button[] _menuButtons = new Button[MenuKinds.Length];
+        private GameObject _promptRoot;
+        private TMP_Text _promptLabel;
+        private Image _promptLabelBack;
 
         /// <summary>
-        /// E is one context key: over the god statue it opens the skill upgrade interface, anywhere
-        /// else it builds. The radius is authored here because the art scale is not a game constant.
+        /// E is one context key: next to the god statue it opens the upgrade panel, next to an empty
+        /// build slot it spends essence. The statue radius is authored here because the art scale is
+        /// not a game constant.
         /// </summary>
-        public bool IsOverStatue(Vector2 worldPosition)
+        public bool HasStatue => _godStatue != null;
+        public Vector2 StatuePosition => _godStatue != null ? (Vector2)_godStatue.position : Vector2.zero;
+        public float StatuePickRadius => _statuePickRadius;
+
+        public void SetCallbacks(UnityAction onInteract, UnityAction onUpgrade)
         {
-            if (_godStatue == null)
-            {
-                return false;
-            }
-
-            return ((Vector2)_godStatue.position - worldPosition).sqrMagnitude
-                <= _statuePickRadius * _statuePickRadius;
-        }
-
-        public Vector2 CursorPosition
-        {
-            get
-            {
-                Camera camera = _camera != null ? _camera : Camera.main;
-                if (camera == null || Mouse.current == null)
-                {
-                    return Vector2.zero;
-                }
-
-                return camera.ScreenToWorldPoint(Mouse.current.position.ReadValue());
-            }
-        }
-
-        public void SetCallbacks(UnityAction<Vector2> onBuild, UnityAction onUpgrade)
-        {
-            _onBuild = onBuild;
+            _onInteract = onInteract;
             _onUpgrade = onUpgrade;
         }
 
-        public void SetBuildKindCallback(UnityAction<BuildKind> onBuildKind)
+        /// <summary>Per-frame hook: the controller decides whether anything is in reach.</summary>
+        public void SetTickCallback(UnityAction<float> onTick)
         {
-            _onBuildKind = onBuildKind;
+            _onTick = onTick;
         }
 
-        /// <summary>Hidden until the run starts so the buy menu never floats over the pre-game screen.</summary>
-        public void SetBuyMenuVisible(bool visible)
+        /// <summary>Gold "E" over the target, with the price under it. An empty label hides the tag.</summary>
+        public void ShowPrompt(Vector2 position, string label)
         {
-            if (visible)
-            {
-                EnsureBuyMenu();
-            }
-
-            if (_menuRoot != null)
-            {
-                _menuRoot.SetActive(visible);
-            }
-        }
-
-        /// <summary>Greys out whatever the player cannot afford. Called from the controller.</summary>
-        public void RefreshBuyMenu(int essence, bool freeBuild, int statueLevel)
-        {
-            EnsureBuyMenu();
-            if (_menuRoot == null)
+            EnsurePrompt();
+            if (_promptRoot == null)
             {
                 return;
             }
 
-            if (_menuHint != null)
+            _promptRoot.SetActive(true);
+            float bob = Mathf.Sin(Time.unscaledTime * 3.5f) * 0.06f;
+            _promptRoot.transform.localPosition = new Vector3(position.x, position.y + _promptOffsetY + bob, 0f);
+
+            bool hasLabel = !string.IsNullOrEmpty(label);
+            if (_promptLabel != null)
             {
-                _menuHint.text = $"Statue Lv {statueLevel} — {essence} essence";
+                _promptLabel.gameObject.SetActive(hasLabel);
+                _promptLabel.text = hasLabel ? label : string.Empty;
             }
 
-            for (int i = 0; i < _menuButtons.Length; i++)
+            if (_promptLabelBack != null)
             {
-                if (_menuButtons[i] != null)
-                {
-                    _menuButtons[i].interactable = freeBuild || essence >= BuildRules.CostOf(MenuKinds[i]);
-                }
+                _promptLabelBack.gameObject.SetActive(hasLabel);
+            }
+        }
+
+        public void HidePrompt()
+        {
+            if (_promptRoot != null && _promptRoot.activeSelf)
+            {
+                _promptRoot.SetActive(false);
             }
         }
 
@@ -124,107 +98,84 @@ namespace ProjectTA.Module.Build
 
             if (Keyboard.current.eKey.wasPressedThisFrame)
             {
-                _onBuild?.Invoke(CursorPosition);
+                _onInteract?.Invoke();
             }
 
             if (Keyboard.current.fKey.wasPressedThisFrame)
             {
                 _onUpgrade?.Invoke();
             }
+
+            _onTick?.Invoke(Time.deltaTime);
         }
 
         /// <summary>
-        /// GDD §12 buy list. Built at runtime because the HUD canvas is authored and adding a panel
-        /// to the scene file by hand is the fragile option.
+        /// World-space canvas built at runtime: the HUD canvas is authored, and adding a floating
+        /// world prompt to the scene file by hand is the fragile option.
         /// </summary>
-        private void EnsureBuyMenu()
+        private void EnsurePrompt()
         {
-            if (_menuRoot != null || !_showBuyMenu)
+            if (_promptRoot != null)
             {
                 return;
             }
 
-            Canvas canvas = GetComponentInParent<Canvas>();
-            if (canvas == null)
-            {
-                canvas = UnityEngine.Object.FindFirstObjectByType<Canvas>();
-            }
+            _promptRoot = new GameObject("InteractPrompt", typeof(RectTransform), typeof(Canvas));
+            RectTransform root = _promptRoot.GetComponent<RectTransform>();
+            root.SetParent(transform, false);
+            root.sizeDelta = new Vector2(80f, 80f);
+            root.localScale = Vector3.one * 0.01f;
 
-            if (canvas == null)
-            {
-                return;
-            }
+            Canvas canvas = _promptRoot.GetComponent<Canvas>();
+            canvas.renderMode = RenderMode.WorldSpace;
+            canvas.sortingOrder = 100;
 
-            _menuRoot = new GameObject("BuildMenu", typeof(RectTransform));
-            RectTransform root = _menuRoot.GetComponent<RectTransform>();
-            root.SetParent(canvas.transform, false);
-            root.anchorMin = root.anchorMax = new Vector2(0f, 0.5f);
-            root.pivot = new Vector2(0f, 0.5f);
-            root.anchoredPosition = new Vector2(16f, -40f);
-            root.sizeDelta = new Vector2(180f, 32f);
+            CreateBox(root, "Border", new Vector2(84f, 84f), _promptColor);
+            CreateBox(root, "Fill", new Vector2(76f, 76f), new Color(0f, 0f, 0f, 0.85f));
 
-            VerticalLayoutGroup layout = _menuRoot.AddComponent<VerticalLayoutGroup>();
-            layout.spacing = 4f;
-            layout.childForceExpandHeight = false;
-            layout.childForceExpandWidth = true;
-            layout.childControlHeight = true;
-            layout.childControlWidth = true;
-            ContentSizeFitter fitter = _menuRoot.AddComponent<ContentSizeFitter>();
-            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            TMP_Text key = CreateText(root, "Key", "E", 56f, _promptColor);
+            key.rectTransform.sizeDelta = new Vector2(80f, 80f);
 
-            _menuHint = CreateLabel(root, "Hint");
-            _menuHint.fontSize = 14f;
-            _menuHint.text = "Statue Lv 1 — 0 essence";
-            _menuHint.gameObject.AddComponent<LayoutElement>().preferredHeight = 20f;
+            _promptLabelBack = CreateBox(root, "LabelBack", new Vector2(200f, 34f), new Color(0f, 0f, 0f, 0.85f));
+            _promptLabelBack.rectTransform.anchoredPosition = new Vector2(0f, -58f);
 
-            for (int i = 0; i < MenuKinds.Length; i++)
-            {
-                _menuButtons[i] = CreateButton(root, MenuKinds[i]);
-            }
+            _promptLabel = CreateText(root, "Label", string.Empty, 28f, _promptColor);
+            _promptLabel.rectTransform.sizeDelta = new Vector2(200f, 34f);
+            _promptLabel.rectTransform.anchoredPosition = new Vector2(0f, -58f);
 
-            // Stays hidden until the run starts; SetBuyMenuVisible(true) turns it on.
-            _menuRoot.SetActive(false);
+            _promptRoot.SetActive(false);
         }
 
-        private Button CreateButton(RectTransform parent, BuildKind kind)
+        private static Image CreateBox(RectTransform parent, string name, Vector2 size, Color color)
         {
-            GameObject row = new GameObject(kind + "Button", typeof(RectTransform), typeof(Image), typeof(Button));
-            RectTransform rect = row.GetComponent<RectTransform>();
+            GameObject go = new GameObject(name, typeof(RectTransform), typeof(Image));
+            RectTransform rect = go.GetComponent<RectTransform>();
             rect.SetParent(parent, false);
+            rect.anchoredPosition = Vector2.zero;
+            rect.sizeDelta = size;
 
-            Image background = row.GetComponent<Image>();
-            background.color = new Color(0f, 0f, 0f, 0.55f);
-
-            Button button = row.GetComponent<Button>();
-            button.targetGraphic = background;
-            BuildKind captured = kind;
-            button.onClick.AddListener(() => _onBuildKind?.Invoke(captured));
-
-            LayoutElement element = row.AddComponent<LayoutElement>();
-            element.preferredHeight = 30f;
-
-            TMP_Text text = CreateLabel(rect, "Label");
-            text.text = $"{kind} — {BuildRules.CostOf(kind)} essence";
-
-            return button;
+            Image image = go.GetComponent<Image>();
+            image.color = color;
+            image.raycastTarget = false;
+            return image;
         }
 
-        private static TMP_Text CreateLabel(RectTransform parent, string name)
+        private static TMP_Text CreateText(RectTransform parent, string name, string text, float fontSize, Color color)
         {
             GameObject go = new GameObject(name, typeof(RectTransform));
             RectTransform rect = go.GetComponent<RectTransform>();
             rect.SetParent(parent, false);
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = new Vector2(8f, 0f);
-            rect.offsetMax = new Vector2(-8f, 0f);
+            rect.anchoredPosition = Vector2.zero;
+            rect.sizeDelta = new Vector2(80f, 80f);
 
-            TextMeshProUGUI text = go.AddComponent<TextMeshProUGUI>();
-            text.font = TMP_Settings.defaultFontAsset;
-            text.fontSize = 15f;
-            text.alignment = TextAlignmentOptions.Left;
-            text.raycastTarget = false;
-            return text;
+            TextMeshProUGUI label = go.AddComponent<TextMeshProUGUI>();
+            label.font = TMP_Settings.defaultFontAsset;
+            label.fontSize = fontSize;
+            label.color = color;
+            label.text = text;
+            label.alignment = TextAlignmentOptions.Center;
+            label.raycastTarget = false;
+            return label;
         }
     }
 }

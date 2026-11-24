@@ -14,6 +14,9 @@ namespace ProjectTA.Module.PlayerSkill
         public PlayerSkillConstants SkillConstants { get; private set; }
         public int StatueLevel { get; private set; } = 1;
 
+        /// <summary>GDD §16 Unlock All: the cheat flag that overrides the statue-level gate.</summary>
+        public bool UnlockAll { get; private set; }
+
         private const int WeaponCount = 2;
         private const int SlotCount = 4;
 
@@ -45,6 +48,14 @@ namespace ProjectTA.Module.PlayerSkill
                 }
             }
 
+            UnlockAll = false;
+            SetDataAsDirty();
+        }
+
+        /// <summary>Dev console Unlock All. Cleared by Reset, so a restart re-gates everything.</summary>
+        public void SetUnlockAll(bool isActive)
+        {
+            UnlockAll = isActive;
             SetDataAsDirty();
         }
 
@@ -101,7 +112,7 @@ namespace ProjectTA.Module.PlayerSkill
 
         public bool IsUnlocked(EnumManager.SkillSlot slot)
         {
-            return StatueLevel >= GetRequiredStatueLevel(slot);
+            return UnlockAll || StatueLevel >= GetRequiredStatueLevel(slot);
         }
 
         public float GetManaCost(EnumManager.SkillSlot slot)

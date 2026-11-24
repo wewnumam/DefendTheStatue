@@ -17,6 +17,7 @@ namespace ProjectTA.Module.Build
             Subscribe<TrapBuiltMessage>(_build.OnTrapBuilt);
             Subscribe<GuardBuiltMessage>(_build.OnGuardBuilt);
             Subscribe<CheatToggledMessage>(_build.OnCheatToggled);
+            Subscribe<DevBuildAllMessage>(_build.OnDevBuildAll);
             Subscribe<GameStateMessage>(_build.OnGameState);
         }
 
@@ -30,6 +31,7 @@ namespace ProjectTA.Module.Build
             Unsubscribe<TrapBuiltMessage>(_build.OnTrapBuilt);
             Unsubscribe<GuardBuiltMessage>(_build.OnGuardBuilt);
             Unsubscribe<CheatToggledMessage>(_build.OnCheatToggled);
+            Unsubscribe<DevBuildAllMessage>(_build.OnDevBuildAll);
             Unsubscribe<GameStateMessage>(_build.OnGameState);
         }
     }

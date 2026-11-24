@@ -24,6 +24,8 @@ namespace ProjectTA.Module.Hud
         [SerializeField] private TMP_Text _essenceText;
         [SerializeField] private TMP_Text _arrowText;
         [SerializeField] private TMP_Text _weaponText;
+        /// <summary>Optional scene object the round gauges hang under — its rect is the group's origin.</summary>
+        [SerializeField] private RectTransform _gaugeAnchor;
 
         /// <summary>
         /// Four-state software pointer. The art is 16x16, so each hotspot is given in texture pixels
@@ -198,17 +200,22 @@ namespace ProjectTA.Module.Hud
 
             _gaugesBuilt = true;
 
+            bool anchored = _gaugeAnchor != null;
+            Transform parent = anchored ? _gaugeAnchor : transform;
+
             for (int i = 0; i < 3; i++)
             {
                 GameObject gauge = new GameObject("Gauge" + GaugeLabels[i], typeof(RectTransform));
                 RectTransform rect = gauge.GetComponent<RectTransform>();
-                rect.SetParent(transform, false);
+                rect.SetParent(parent, false);
                 rect.anchorMin = rect.anchorMax = new Vector2(0f, 0f);
                 rect.pivot = new Vector2(0f, 0f);
                 rect.sizeDelta = new Vector2(GaugeSize, GaugeSize);
-                // The scene's three 300x80 sliders already sit at the bottom-left corner, so the round
-                // gauges start to their right instead of landing on top of them.
-                rect.anchoredPosition = new Vector2(316f + i * (GaugeSize + GaugeGap), 16f);
+                // Without an anchor the scene's three 300x80 sliders already sit at the bottom-left
+                // corner, so the round gauges start to their right instead of landing on top of them.
+                rect.anchoredPosition = anchored
+                    ? new Vector2(i * (GaugeSize + GaugeGap), 0f)
+                    : new Vector2(316f + i * (GaugeSize + GaugeGap), 16f);
 
                 _gaugeFills[i] = CreateRadialFill(rect, GaugeFillPaths[i]);
                 CreateOverlay(rect, "Frame", GaugeFramePaths[i]);
