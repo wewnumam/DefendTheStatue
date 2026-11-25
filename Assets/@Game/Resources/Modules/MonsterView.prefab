@@ -135,6 +135,7 @@ MonoBehaviour:
     MindControlled: {fileID: 7458448485766302733, guid: 606b683f54ea715428c78501842a8cd9, type: 3}
   _minOneShotSeconds: 0.15
   _hitFlashSeconds: 0.1
+  _healthBarPrefab: {fileID: 1120000000000000003, guid: b4d7e1a9c3f24b6d8e0a5c1f3b7d9e24, type: 3}
 --- !u!114 &582552136076718910
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -216,7 +217,7 @@ Rigidbody2D:
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0

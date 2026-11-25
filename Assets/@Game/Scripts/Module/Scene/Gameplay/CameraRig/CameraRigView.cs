@@ -38,10 +38,14 @@ namespace ProjectTA.Module.CameraRig
                 return;
             }
 
+            // Frame-rate independent: the serialized value stays "fraction per 60 fps frame", so the
+            // pull-back takes the same wall time on any refresh rate instead of snapping on fast machines.
+            float k = 1f - Mathf.Pow(1f - Mathf.Clamp(_zoomLerp, 0.001f, 0.999f), Time.unscaledDeltaTime * 60f);
+
             if (_cinemachineCamera != null)
             {
                 LensSettings lens = _cinemachineCamera.Lens;
-                lens.OrthographicSize = Mathf.Lerp(lens.OrthographicSize, _targetSize, _zoomLerp);
+                lens.OrthographicSize = Mathf.Lerp(lens.OrthographicSize, _targetSize, k);
                 _cinemachineCamera.Lens = lens;
                 return;
             }
@@ -51,14 +55,15 @@ namespace ProjectTA.Module.CameraRig
                 return;
             }
 
-            _camera.orthographicSize = Mathf.Lerp(_camera.orthographicSize, _targetSize, _zoomLerp);
+            _camera.orthographicSize = Mathf.Lerp(_camera.orthographicSize, _targetSize, k);
 
             if (_followTarget != null)
             {
                 Vector3 position = _camera.transform.position;
                 Vector3 target = _followTarget.position;
                 target.z = position.z;
-                _camera.transform.position = Vector3.Lerp(position, target, _followLerp);
+                float follow = 1f - Mathf.Pow(1f - Mathf.Clamp(_followLerp, 0.001f, 0.999f), Time.unscaledDeltaTime * 60f);
+                _camera.transform.position = Vector3.Lerp(position, target, follow);
             }
         }
     }

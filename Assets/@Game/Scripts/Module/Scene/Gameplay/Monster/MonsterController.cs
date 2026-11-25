@@ -44,6 +44,12 @@ namespace ProjectTA.Module.Monster
             _view.PlayHitFlash();
         }
 
+        /// <summary>Bar reads the ratio; full health keeps it hidden.</summary>
+        public void SetHealth(float health, float maxHealth)
+        {
+            _view.SetHealth(health, maxHealth);
+        }
+
         /// <summary>Bite pose; the pool tick polls it back to idle.</summary>
         public void PlayAttack()
         {

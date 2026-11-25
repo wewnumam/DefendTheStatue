@@ -13,7 +13,12 @@ namespace ProjectTA.Module.Tree
     {
         [SerializeField] private SpriteRenderer _treePrefab;
 
+        /// <summary>Hidden until a hit lands, so a standing forest carries no bars.</summary>
+        [SerializeField] private Utility.HealthBarView _healthBarPrefab;
+
         private readonly Dictionary<int, SpriteRenderer> _trees = new Dictionary<int, SpriteRenderer>();
+        private readonly Dictionary<int, Utility.HealthBarView> _bars =
+            new Dictionary<int, Utility.HealthBarView>();
         private UnityAction<float> _onTick;
 
         public void SetCallback(UnityAction<float> onTick)
@@ -70,6 +75,23 @@ namespace ProjectTA.Module.Tree
             }
 
             _trees[id] = tree;
+
+            // The bar is a child of the clone, so it dies with the tree and follows the stump's scale.
+            if (_healthBarPrefab != null)
+            {
+                Utility.HealthBarView bar = Instantiate(_healthBarPrefab, tree.transform);
+                bar.Init(tree.transform, size);
+                _bars[id] = bar;
+            }
+        }
+
+        /// <summary>Ratio 1 hides the bar: untouched, chopped or freshly grown trees show nothing.</summary>
+        public void SetHealth(int id, float normalized)
+        {
+            if (_bars.TryGetValue(id, out Utility.HealthBarView bar) && bar != null)
+            {
+                bar.Show(normalized);
+            }
         }
 
         private Sprite SpriteFor(Utility.EnumManager.TreeKind kind)
@@ -87,7 +109,6 @@ namespace ProjectTA.Module.Tree
             }
         }
 
-        /// <summary>Hides a chopped tree without dropping its collider, so the stump stays solid.</summary>
         private Color ColorFor(Utility.EnumManager.TreeKind kind)
         {
             switch (kind)
@@ -103,6 +124,7 @@ namespace ProjectTA.Module.Tree
             }
         }
 
+        /// <summary>A chopped tree leaves nothing behind: sprite, collider and bar all follow the flag.</summary>
         public void SetVisible(int id, bool visible)
         {
             if (!_trees.TryGetValue(id, out SpriteRenderer tree) || tree == null)
@@ -111,6 +133,16 @@ namespace ProjectTA.Module.Tree
             }
 
             tree.enabled = visible;
+
+            // A chopped tree is gone: its collider must not keep blocking or eating arrows.
+            Collider2D hitbox = tree.GetComponent<Collider2D>();
+            if (hitbox != null)
+            {
+                hitbox.enabled = visible;
+            }
+
+            // A chopped or regrown tree is untouched again, so its bar goes away with the sprite.
+            SetHealth(id, 1f);
         }
 
         public void RemoveTree(int id)
@@ -126,6 +158,7 @@ namespace ProjectTA.Module.Tree
             }
 
             _trees.Remove(id);
+            _bars.Remove(id);
         }
 
         public void ClearTrees()
@@ -139,6 +172,7 @@ namespace ProjectTA.Module.Tree
             }
 
             _trees.Clear();
+            _bars.Clear();
         }
 
         private void Update()

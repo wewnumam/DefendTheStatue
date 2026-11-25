@@ -130,7 +130,7 @@ namespace ProjectTA.Scene.Gameplay
 
             SceneManager.SetActiveScene(SceneManager.GetSceneByName(SceneName));
 
-            _view.SetCallbacks(OnMainMenu);
+            _view.SetCallbacks(OnMainMenu, OnPlayAgain);
 
             _tutorial.SetView(_view.TutorialView);
             if (_gameSettings.Model.SavedSettingsData.IsGameInductionActive)
@@ -204,6 +204,11 @@ namespace ProjectTA.Scene.Gameplay
         private void OnMainMenu()
         {
             SceneLoader.Instance.LoadScene(TagManager.SCENE_MAINMENU);
+        }
+
+        private void OnPlayAgain()
+        {
+            SceneLoader.Instance.LoadScene(TagManager.SCENE_GAMEPLAY);
         }
 
         /// <summary>

@@ -21,6 +21,7 @@ namespace ProjectTA.Module.Tree
         private bool[] _unlocked = System.Array.Empty<bool>();
         private readonly List<Vector2> _towerPositions = new List<Vector2>();
         private readonly List<TreeState> _clearedTrees = new List<TreeState>();
+        private readonly List<TreeState> _damagedTrees = new List<TreeState>();
         private readonly List<TreeState> _revivedTrees = new List<TreeState>();
 
         public void InitModel(IGameConstantsModel gameConstants)
@@ -89,11 +90,14 @@ namespace ProjectTA.Module.Tree
         public void OnAreaDamage(RequestAreaDamageMessage message)
         {
             _clearedTrees.Clear();
-            if (_model.DamageArea(message.Center, message.Radius, message.Amount, _clearedTrees) == 0)
+            _damagedTrees.Clear();
+            if (_model.DamageArea(message.Center, message.Radius, message.Amount, _clearedTrees, _damagedTrees) == 0)
             {
+                ShowBars(_damagedTrees);
                 return;
             }
 
+            ShowBars(_damagedTrees);
             PublishManaFrom(_clearedTrees);
             PublishChopped();
         }
@@ -101,13 +105,19 @@ namespace ProjectTA.Module.Tree
         /// <summary>Arrows and monster bites land on one tree.</summary>
         public void OnTreeDamage(RequestTreeDamageMessage message)
         {
-            if (!_model.Damage(message.TreeId, message.Amount))
+            TreeState tree = _model.Get(message.TreeId);
+            if (tree == null || !tree.CanHeal)
             {
                 return;
             }
 
-            TreeState tree = _model.Get(message.TreeId);
-            if (tree == null)
+            _clearedTrees.Clear();
+            _damagedTrees.Clear();
+            _damagedTrees.Add(tree);
+            _model.Damage(message.TreeId, message.Amount);
+            ShowBars(_damagedTrees);
+
+            if (!tree.IsDestroyed)
             {
                 return;
             }
@@ -117,7 +127,6 @@ namespace ProjectTA.Module.Tree
                 PublishMana(tree);
             }
 
-            _clearedTrees.Clear();
             _clearedTrees.Add(tree);
             PublishChopped();
         }
@@ -314,6 +323,26 @@ namespace ProjectTA.Module.Tree
             Publish(new RequestManaGainMessage(tree.Stats.ManaDrop));
         }
 
+        /// <summary>Chop order and clean-up order differ, so bars are refreshed from whatever took the hit.</summary>
+        private void ShowBars(List<TreeState> trees)
+        {
+            if (_view == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < trees.Count; i++)
+            {
+                TreeState tree = trees[i];
+                if (tree.IsDestroyed)
+                {
+                    continue;
+                }
+
+                _view.SetHealth(tree.Id, tree.Health / tree.MaxHealth);
+            }
+        }
+
         private void PublishChopped()
         {
             for (int i = 0; i < _clearedTrees.Count; i++)
@@ -366,6 +395,7 @@ namespace ProjectTA.Module.Tree
             _unlocked = new bool[_layout.RingCount];
             _towerPositions.Clear();
             _clearedTrees.Clear();
+            _damagedTrees.Clear();
 
             if (_unlocked.Length > 0)
             {

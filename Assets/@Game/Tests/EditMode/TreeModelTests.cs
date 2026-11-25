@@ -83,6 +83,21 @@ namespace ProjectTA.Tests.EditMode
         }
 
         [Test]
+        public void DamageArea_ReportsChippedTreesTheHealthBarNeeds()
+        {
+            TreeModel model = new TreeModel();
+            model.Add(Vector2.zero, 0);
+            model.Add(new Vector2(50f, 0f), 0);
+            var damaged = new System.Collections.Generic.List<TreeState>();
+
+            int chopped = model.DamageArea(Vector2.zero, 5f, 1f, null, damaged);
+
+            Assert.That(chopped, Is.EqualTo(0));
+            Assert.That(damaged.Count, Is.EqualTo(1), "only the tree inside the radius took the hit");
+            Assert.That(damaged[0].Health, Is.LessThan(damaged[0].MaxHealth), "the bar reads the ratio");
+        }
+
+        [Test]
         public void TickRespawn_RevivesAChoppedTreeAfterItsCooldown()
         {
             TreeModel model = new TreeModel();

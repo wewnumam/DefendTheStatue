@@ -256,6 +256,13 @@ namespace ProjectTA.Module.Monster
             TreeKindStats stats = _treeConstants.GetKind(kind);
 
             _model.Heal(monster.Id, stats.HpDrop);
+
+            // A tree bite heals the monster, so the bar has to climb back (and vanish at full health).
+            if (_bound.TryGetValue(monster.Id, out MonsterController healed))
+            {
+                healed.SetHealth(monster.Health, monster.MaxHealth);
+            }
+
             Publish(new RequestTreeDamageMessage(
                 treeId,
                 stats.Health * _treeConstants.MonsterHealTreeDamageFraction,
@@ -318,6 +325,7 @@ namespace ProjectTA.Module.Monster
                 // GDD §7: the pool recycles one prefab, so the kind's body is applied before the object
                 // is shown. A recycled Stacker must not spend a frame wearing the Deasor sprite.
                 controller.ViewRef.SetKind(monster.Kind);
+                controller.SetHealth(monster.Health, monster.MaxHealth);
                 controller.ViewRef.gameObject.SetActive(true);
             }
 
@@ -404,6 +412,7 @@ namespace ProjectTA.Module.Monster
                 {
                     hurt.PlayHit();
                     hurt.Flash();
+                    hurt.SetHealth(monster.Health, monster.MaxHealth);
                 }
 
                 Publish(new MonsterDamagedMessage(monsterId, monster.Health, hitPosition));

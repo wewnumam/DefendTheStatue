@@ -206,7 +206,7 @@ namespace ProjectTA.Module.Tree
         }
 
         /// <summary>Reference sword swing's findNearestTree + damageTree: every tree inside the radius takes the hit.</summary>
-        public int DamageArea(Vector2 center, float radius, float amount, List<TreeState> chopped = null)
+        public int DamageArea(Vector2 center, float radius, float amount, List<TreeState> chopped = null, List<TreeState> damaged = null)
         {
             float radiusSquared = radius * radius;
             int count = 0;
@@ -218,6 +218,8 @@ namespace ProjectTA.Module.Tree
                 {
                     continue;
                 }
+
+                damaged?.Add(tree);
 
                 if (Damage(tree.Id, amount))
                 {

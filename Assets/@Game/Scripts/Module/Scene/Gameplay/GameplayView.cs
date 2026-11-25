@@ -74,15 +74,22 @@ namespace ProjectTA.Scene.Gameplay
         public TeleportView TeleportView { get; private set; }
 
         private UnityAction _onMainMenu;
+        private UnityAction _onPlayAgain;
 
         public void MainMenu()
         {
             _onMainMenu?.Invoke();
         }
 
-        public void SetCallbacks(UnityAction onMainMenu)
+        public void PlayAgain()
+        {
+            _onPlayAgain?.Invoke();
+        }
+
+        public void SetCallbacks(UnityAction onMainMenu, UnityAction onPlayAgain)
         {
             _onMainMenu = onMainMenu;
+            _onPlayAgain = onPlayAgain;
         }
     }
 }

@@ -58,6 +58,12 @@ namespace ProjectTA.Module.Monster
         /// </summary>
         [SerializeField] private float _hitFlashSeconds = 0.1f;
 
+        /// <summary>Shown only after the first hit: a fresh monster carries no bar.</summary>
+        [Header("Health bar")]
+        [SerializeField] private Utility.HealthBarView _healthBarPrefab;
+
+        private Utility.HealthBarView _healthBar;
+
         private Color _baseColor;
         private MonsterKindSprites _kindArt;
         private bool _artFromAnimator = true;
@@ -91,6 +97,26 @@ namespace ProjectTA.Module.Monster
             // A recycled monster must not inherit the previous life's hit tint.
             EndHitFlash();
             PlayIdleAnimation();
+        }
+
+        /// <summary>
+        /// Per-spawn and per-hit. The bar is built on the first call because the pool scales the body
+        /// after <see cref="Awake"/>; passing full health hides it again for a recycled monster.
+        /// </summary>
+        public void SetHealth(float health, float maxHealth)
+        {
+            if (_healthBar == null)
+            {
+                if (_healthBarPrefab == null)
+                {
+                    return;
+                }
+
+                _healthBar = Instantiate(_healthBarPrefab, transform);
+                _healthBar.Init(transform, transform.localScale.x);
+            }
+
+            _healthBar.Show(maxHealth > 0f ? health / maxHealth : 0f);
         }
 
         /// <summary>Spawn and recycle use this: it teleports the body, so no velocity survives the move.</summary>
