@@ -240,5 +240,53 @@ namespace ProjectTA.Tests.EditMode
             Assert.That(_model.ApplyEmpower(Vector2.zero, 180f, 4f, 2f, 6f), Is.EqualTo(0));
             Assert.That(_model.GetDamage(index), Is.EqualTo(1f));
         }
+
+        [Test]
+        public void Patrol_WalksAroundTheFoundationWithNoMonsters()
+        {
+            Vector2 home = new Vector2(0f, 200f);
+            int index = _model.AddFoundation(3, home);
+            _model.TryBuild(index);
+
+            _model.Tick(0.5f, 90f, false, 60f);
+
+            Vector2 moved = _model.Get(index).Position;
+            Assert.That(moved, Is.Not.EqualTo(home), "a patrolling guard must move");
+            Assert.That((moved - home).magnitude, Is.LessThanOrEqualTo(_model.Constants.PatrolRadius + 0.01f));
+        }
+
+        [Test]
+        public void Chase_ClosesToFireRangeAndStopsThere()
+        {
+            int index = _model.AddFoundation(3, new Vector2(0f, 200f));
+            _model.TryBuild(index);
+
+            Vector2 monster = new Vector2(0f, -100f); // 300 away: outside fire range, inside the leash
+            _model.Tick(1f, 90f, false, 60f, new[] { monster });
+
+            Vector2 guard = _model.Get(index).Position;
+            float distance = (guard - monster).magnitude;
+            Assert.That(guard.y, Is.LessThan(200f), "moved toward the monster");
+            Assert.That(distance, Is.LessThanOrEqualTo(_model.Constants.AttackRange * 0.8f + 0.01f));
+
+            _model.Tick(1f, 90f, false, 60f, new[] { monster });
+            Assert.That((_model.Get(index).Position - monster).magnitude,
+                Is.EqualTo(distance).Within(0.01f), "holds fire range instead of walking into the monster");
+        }
+
+        [Test]
+        public void Chase_IgnoresMonstersOutsideTheGuardsZone()
+        {
+            Vector2 home = new Vector2(0f, 200f);
+            int index = _model.AddFoundation(3, home);
+            _model.TryBuild(index);
+
+            Vector2 outside = new Vector2(0f, 900f); // beyond territory 1 and the leash
+            _model.Tick(1f, 90f, false, 60f, new[] { outside });
+
+            Vector2 guard = _model.Get(index).Position;
+            Assert.That((guard - home).magnitude, Is.LessThanOrEqualTo(_model.Constants.PatrolRadius + 0.01f));
+            Assert.That((guard - outside).magnitude, Is.GreaterThan(400f));
+        }
     }
 }

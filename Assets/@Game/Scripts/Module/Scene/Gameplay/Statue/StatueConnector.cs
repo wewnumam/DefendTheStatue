@@ -21,6 +21,7 @@ namespace ProjectTA.Module.Statue
             Subscribe<DevHealStatueMessage>(_statue.OnDevHeal);
             Subscribe<DevMaxLevelMessage>(_statue.OnDevMaxLevel);
             Subscribe<GameStateMessage>(_statue.OnGameState);
+            Subscribe<RequestStatueGateStatusMessage>(_statue.OnRequestGateStatus);
         }
 
         protected override void Disconnect()
@@ -37,6 +38,7 @@ namespace ProjectTA.Module.Statue
             Unsubscribe<DevHealStatueMessage>(_statue.OnDevHeal);
             Unsubscribe<DevMaxLevelMessage>(_statue.OnDevMaxLevel);
             Unsubscribe<GameStateMessage>(_statue.OnGameState);
+            Unsubscribe<RequestStatueGateStatusMessage>(_statue.OnRequestGateStatus);
         }
     }
 }

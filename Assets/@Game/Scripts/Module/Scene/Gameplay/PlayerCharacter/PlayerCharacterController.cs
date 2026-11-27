@@ -17,7 +17,7 @@ namespace ProjectTA.Module.PlayerCharacter
         private const float ChargedShotDamage = 2f;
 
         /// <summary>GDD §4 skill 1 (sword): the dash body-checks for 2, once per monster per dash.</summary>
-        private const float DashDamage = 2f;
+        public const float DashDamage = 2f;
         private const float DashHitRadius = 25f;
 
         /// <summary>Weapon in hand, mirrored from the skill module's resolved switch.</summary>

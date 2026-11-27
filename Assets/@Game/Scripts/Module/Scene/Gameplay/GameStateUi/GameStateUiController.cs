@@ -17,6 +17,11 @@ namespace ProjectTA.Module.GameStateUi
         private PlayerSkillConstants _skills;
         private bool _upgradePanelOpen;
 
+        /// <summary>Latest gate report from the statue: requirement rows and whether the level is open.</summary>
+        private bool _gateReady;
+        private int _gateNextLevel;
+        private string[] _gateLines = System.Array.Empty<string>();
+
         /// <summary>Handed over by the launcher so the overlay can print the eight skill rows.</summary>
         public void SetSkillConstants(PlayerSkillConstants skills)
         {
@@ -44,7 +49,20 @@ namespace ProjectTA.Module.GameStateUi
 
         private void RefreshUpgradePanel()
         {
-            _view.ShowUpgradePanel(_skills, _model.StatueLevel, _model.Essence);
+            _view.ShowUpgradePanel(_skills, _model.StatueLevel, _model.Essence, _gateNextLevel, _gateReady, _gateLines);
+        }
+
+        /// <summary>GDD §5: the panel shows the next level's gates and live progress.</summary>
+        public void OnStatueGateStatus(StatueGateStatusMessage message)
+        {
+            _gateNextLevel = message.NextLevel;
+            _gateReady = message.Ready;
+            _gateLines = message.Lines ?? System.Array.Empty<string>();
+
+            if (_upgradePanelOpen)
+            {
+                RefreshUpgradePanel();
+            }
         }
 
         private void OnRestart()
@@ -166,6 +184,7 @@ namespace ProjectTA.Module.GameStateUi
 
             if (message.IsOpen)
             {
+                Publish(new RequestStatueGateStatusMessage());
                 RefreshUpgradePanel();
             }
         }

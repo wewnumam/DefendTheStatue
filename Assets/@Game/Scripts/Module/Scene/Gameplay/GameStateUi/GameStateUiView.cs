@@ -47,8 +47,17 @@ namespace ProjectTA.Module.GameStateUi
             _onCloseUpgradePanel = onCloseUpgradePanel;
         }
 
-        /// <summary>Fills the overlay with the eight skill rows and the statue upgrade price.</summary>
-        public void ShowUpgradePanel(PlayerSkillConstants skills, int statueLevel, int essence)
+        /// <summary>
+        /// Fills the overlay with the eight skill rows, the statue upgrade price, and the next level's
+        /// gates with live progress (GDD §5).
+        /// </summary>
+        public void ShowUpgradePanel(
+            PlayerSkillConstants skills,
+            int statueLevel,
+            int essence,
+            int nextLevel,
+            bool gateReady,
+            string[] gateLines)
         {
             EnsureUpgradeContent();
             if (_upgradeBody == null)
@@ -56,14 +65,34 @@ namespace ProjectTA.Module.GameStateUi
                 return;
             }
 
-            _upgradeBody.text = skills != null
+            string body = skills != null
                 ? string.Join("\n", skills.BuildSkillLines())
                 : string.Empty;
 
+            if (gateLines != null && gateLines.Length > 0)
+            {
+                body += "\n\nUpgrade to level " + nextLevel + ":";
+                for (int i = 0; i < gateLines.Length; i++)
+                {
+                    body += "\n" + gateLines[i];
+                }
+
+                if (!gateReady)
+                {
+                    body += "\n(requirements not met)";
+                }
+            }
+
+            _upgradeBody.text = body;
+
             bool maxed = statueLevel >= StatueModel.MaxLevel;
             int cost = StatueModel.GetUpgradeCost(statueLevel);
-            _upgradeButtonLabel.text = maxed ? "Statue MAX" : $"Upgrade Statue — {cost} essence";
-            _upgradeButton.interactable = !maxed && essence >= cost;
+            _upgradeButtonLabel.text = maxed
+                ? "Statue MAX"
+                : gateReady
+                    ? $"Upgrade Statue — {cost} essence"
+                    : $"Upgrade Statue — {cost} essence (locked)";
+            _upgradeButton.interactable = !maxed && gateReady && essence >= cost;
         }
 
         /// <summary>Scene button hook: both results panels route their Restart button here.</summary>

@@ -72,6 +72,9 @@ namespace ProjectTA.Module.Guard
         public bool Built { get; set; }
         public float CooldownRemaining { get; set; }
 
+        /// <summary>Angle on the patrol circle, seeded by the guard index so posts do not sync up.</summary>
+        public float PatrolAngle { get; set; }
+
         /// <summary>Clock between incoming monster bites.</summary>
         public float BiteCooldownRemaining { get; set; }
 
@@ -281,6 +284,21 @@ namespace ProjectTA.Module.Guard
         /// </summary>
         public void Tick(float deltaSeconds, float baseSpeed, bool zoneTainted, float statueRadius)
         {
+            Tick(deltaSeconds, baseSpeed, zoneTainted, statueRadius, null);
+        }
+
+        /// <summary>
+        /// Same tick with the monsters a guard can see. A patrolling guard walks its post until an
+        /// eligible monster enters its chase radius, then closes to fire range; a purging guard hunts
+        /// anything near its post. <paramref name="monsterPositions"/> may be null (tests, no monsters).
+        /// </summary>
+        public void Tick(
+            float deltaSeconds,
+            float baseSpeed,
+            bool zoneTainted,
+            float statueRadius,
+            IReadOnlyList<Vector2> monsterPositions)
+        {
             if (deltaSeconds <= 0f)
             {
                 return;
@@ -297,22 +315,27 @@ namespace ProjectTA.Module.Guard
                 if (zoneTainted)
                 {
                     guard.State = GuardStateKind.Purging;
-                    continue;
                 }
-
-                if (guard.State == GuardStateKind.Purging)
+                else
                 {
-                    guard.State = GuardStateKind.Patrol;
-                }
+                    if (guard.State == GuardStateKind.Purging)
+                    {
+                        guard.State = GuardStateKind.Patrol;
+                    }
 
-                if (guard.State != GuardStateKind.Retreating && guard.State != GuardStateKind.Healing
-                    && guard.HealFraction < _constants.RetreatHealthFraction)
-                {
-                    guard.State = GuardStateKind.Retreating;
+                    if (guard.State != GuardStateKind.Retreating && guard.State != GuardStateKind.Healing
+                        && guard.HealFraction < _constants.RetreatHealthFraction)
+                    {
+                        guard.State = GuardStateKind.Retreating;
+                    }
                 }
 
                 switch (guard.State)
                 {
+                    case GuardStateKind.Purging:
+                        Engage(guard, monsterPositions, WalkStep(baseSpeed, deltaSeconds), true);
+                        break;
+
                     case GuardStateKind.Retreating:
                         MoveToward(guard, Vector2.zero, baseSpeed * _constants.RetreatSpeedMultiplier * deltaSeconds);
                         if (guard.Position.magnitude <= statueRadius)
@@ -332,7 +355,7 @@ namespace ProjectTA.Module.Guard
                         break;
 
                     case GuardStateKind.Returning:
-                        MoveToward(guard, guard.HomePosition, baseSpeed * _constants.SpeedMultiplier * deltaSeconds);
+                        MoveToward(guard, guard.HomePosition, WalkStep(baseSpeed, deltaSeconds));
                         if ((guard.Position - guard.HomePosition).sqrMagnitude <= 4f)
                         {
                             guard.Position = guard.HomePosition;
@@ -340,8 +363,102 @@ namespace ProjectTA.Module.Guard
                         }
 
                         break;
+
+                    default:
+                        Engage(guard, monsterPositions, WalkStep(baseSpeed, deltaSeconds), false);
+                        break;
                 }
             }
+        }
+
+        private float WalkStep(float baseSpeed, float deltaSeconds)
+        {
+            return baseSpeed * _constants.SpeedMultiplier * deltaSeconds;
+        }
+
+        /// <summary>Chases the nearest eligible monster, holds just inside fire range, else patrols.</summary>
+        private void Engage(GuardState guard, IReadOnlyList<Vector2> monsters, float step, bool purge)
+        {
+            if (TryFindTarget(guard, monsters, purge, out Vector2 target))
+            {
+                float distance = (target - guard.Position).magnitude;
+                float stopAt = _constants.AttackRange * 0.8f;
+                if (distance <= stopAt)
+                {
+                    return;
+                }
+
+                float travel = Mathf.Min(step, distance - stopAt);
+                Vector2 next = guard.Position + (target - guard.Position) / distance * travel;
+                if ((next - guard.HomePosition).sqrMagnitude <= _constants.LeashRadius * _constants.LeashRadius)
+                {
+                    guard.Position = next;
+                }
+
+                return;
+            }
+
+            PatrolWalk(guard, step);
+        }
+
+        /// <summary>Walks a small circle around the foundation, heading home when drifted too far.</summary>
+        private void PatrolWalk(GuardState guard, float step)
+        {
+            float radius = Mathf.Max(1f, _constants.PatrolRadius);
+            if ((guard.Position - guard.HomePosition).sqrMagnitude > radius * radius)
+            {
+                MoveToward(guard, guard.HomePosition, step);
+                return;
+            }
+
+            guard.PatrolAngle = Mathf.Repeat(guard.PatrolAngle + step / radius, Mathf.PI * 2f);
+            Vector2 waypoint = guard.HomePosition
+                + new Vector2(Mathf.Cos(guard.PatrolAngle), Mathf.Sin(guard.PatrolAngle)) * radius;
+            MoveToward(guard, waypoint, step);
+        }
+
+        private bool TryFindTarget(
+            GuardState guard,
+            IReadOnlyList<Vector2> monsters,
+            bool purge,
+            out Vector2 target)
+        {
+            target = default;
+            if (monsters == null)
+            {
+                return false;
+            }
+
+            float best = float.MaxValue;
+            float chaseSq = _constants.ChaseRadius * _constants.ChaseRadius;
+            float leashSq = _constants.LeashRadius * _constants.LeashRadius;
+            bool found = false;
+
+            for (int i = 0; i < monsters.Count; i++)
+            {
+                Vector2 monster = monsters[i];
+                if (!purge && !IsEligibleTarget(monster, guard.FoundationLevel, GuardStateKind.Patrol))
+                {
+                    continue;
+                }
+
+                if ((monster - guard.HomePosition).sqrMagnitude > leashSq)
+                {
+                    continue;
+                }
+
+                float distance = (monster - guard.Position).sqrMagnitude;
+                if (distance > chaseSq || distance >= best)
+                {
+                    continue;
+                }
+
+                best = distance;
+                target = monster;
+                found = true;
+            }
+
+            return found;
         }
 
         private static void MoveToward(GuardState guard, Vector2 target, float step)

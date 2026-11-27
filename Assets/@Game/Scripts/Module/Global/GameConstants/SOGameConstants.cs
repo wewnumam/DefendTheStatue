@@ -172,6 +172,15 @@ namespace ProjectTA.Module.GameConstants
         /// <summary>Fraction of max HP healed per second while standing at the statue.</summary>
         [SerializeField] private float _healFractionPerSecond = 0.1f;
 
+        /// <summary>GDD §6 patrol: how far a guard wanders from its foundation when nothing is in sight.</summary>
+        [SerializeField] private float _patrolRadius = 60f;
+
+        /// <summary>How far a guard will leave its post to engage a monster.</summary>
+        [SerializeField] private float _chaseRadius = 350f;
+
+        /// <summary>Hard leash: a guard never chases further than this from its foundation.</summary>
+        [SerializeField] private float _leashRadius = 350f;
+
         public int Damage => _damage;
         public float AttackRange => _attackRange;
         public float AttackIntervalSeconds => _attackIntervalSeconds;
@@ -180,6 +189,9 @@ namespace ProjectTA.Module.GameConstants
         public float RetreatHealthFraction => _retreatHealthFraction;
         public float ReturnHealthFraction => _returnHealthFraction;
         public float HealFractionPerSecond => _healFractionPerSecond;
+        public float PatrolRadius => _patrolRadius;
+        public float ChaseRadius => _chaseRadius;
+        public float LeashRadius => _leashRadius;
 
         /// <summary>Max HP for a foundation level: 3 -&gt; 100, 5 -&gt; 150, 10 -&gt; 200.</summary>
         public float HealthForLevel(int foundationLevel)

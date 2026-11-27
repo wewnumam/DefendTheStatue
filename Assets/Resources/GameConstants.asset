@@ -32,7 +32,7 @@ MonoBehaviour:
     _healPerSecond: 18
     _arrowRespawnSeconds: 4
     _maxArrowCapacity: 6
-    _dashSpeed: 1080
+    _dashSpeed: 50
     _dashDurationSeconds: 0.2
   _skillConstants:
     _skill1RequiredStatueLevel: 3
@@ -167,6 +167,9 @@ MonoBehaviour:
     _retreatHealthFraction: 0.3
     _returnHealthFraction: 0.7
     _healFractionPerSecond: 0.1
+    _patrolRadius: 60
+    _chaseRadius: 350
+    _leashRadius: 350
   _bossConstants:
     _maxHealth: 20
     _damage: 10

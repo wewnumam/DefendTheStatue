@@ -24,8 +24,11 @@ namespace ProjectTA.Module.BulletPool
         private const float ArrowStaminaCost = 1f;
 
         /// <summary>GDD §13 bow skill 1: three arrows, 4 damage each, fanned 15 degrees apart.</summary>
-        private const float TripleShotDamage = 4f;
+        public const float TripleShotDamage = 4f;
         private const float TripleShotSpreadDegrees = 15f;
+
+        /// <summary>World units each triple-shot arrow is offset sideways from the muzzle.</summary>
+        private const float TripleShotLateralOffset = 8f;
 
         /// <summary>GDD §13 bow skill 3: clone mode fires two extra arrows for 2 damage each.</summary>
         private const float CloneArrowDamage = 2f;
@@ -97,9 +100,11 @@ namespace ProjectTA.Module.BulletPool
                 return;
             }
 
+            // Fanned ±15° and nudged sideways, so the three arrows neither share an angle nor spawn
+            // inside each other (same-layer non-trigger colliders would stop them dead).
             for (int i = -1; i <= 1; i++)
             {
-                SpawnBullet(TripleShotDamage, i * TripleShotSpreadDegrees);
+                SpawnBullet(TripleShotDamage, i * TripleShotSpreadDegrees, i * TripleShotLateralOffset);
             }
 
             _stamina -= ArrowStaminaCost;
@@ -264,14 +269,16 @@ namespace ProjectTA.Module.BulletPool
         }
 
 
-        private void SpawnBullet(float damageOverride = -1f, float angleOffsetDegrees = 0f)
+        private void SpawnBullet(float damageOverride = -1f, float angleOffsetDegrees = 0f, float lateralOffset = 0f)
         {
             Transform spawn = _view.BulletSpawnPoint;
             Quaternion rotation = spawn.rotation * Quaternion.Euler(0f, 0f, angleOffsetDegrees);
-            SpawnBulletAt(damageOverride, rotation);
+            Vector2 origin = spawn.position;
+            Vector2 position = origin + (Vector2)(rotation * new Vector3(lateralOffset, 0f, 0f));
+            SpawnBulletAt(damageOverride, rotation, position);
         }
 
-        private void SpawnBulletAt(float damageOverride, Quaternion rotation)
+        private void SpawnBulletAt(float damageOverride, Quaternion rotation, Vector2? position = null)
         {
             GameObject bullet = _model.GetPooledBullet();
             if (bullet == null)
@@ -288,7 +295,8 @@ namespace ProjectTA.Module.BulletPool
             }
 
             bullet.transform.SetParent(null);
-            bullet.transform.SetPositionAndRotation(_view.BulletSpawnPoint.position, rotation);
+            bullet.transform.SetPositionAndRotation(
+                position ?? (Vector2)_view.BulletSpawnPoint.position, rotation);
             bullet.SetActive(true);
         }
 

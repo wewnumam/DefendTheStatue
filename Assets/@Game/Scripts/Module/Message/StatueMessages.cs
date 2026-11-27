@@ -68,4 +68,27 @@ namespace ProjectTA.Message
 
         public int TerritoryIndex { get; }
     }
+
+    /// <summary>The upgrade panel asks the statue what the next level still needs.</summary>
+    public struct RequestStatueGateStatusMessage
+    {
+    }
+
+    /// <summary>
+    /// GDD §5 gate progress for the next level, already formatted for the panel: the statue owns the
+    /// counters, so the UI never recounts walls or kills itself.
+    /// </summary>
+    public struct StatueGateStatusMessage
+    {
+        public StatueGateStatusMessage(int nextLevel, bool ready, string[] lines)
+        {
+            NextLevel = nextLevel;
+            Ready = ready;
+            Lines = lines;
+        }
+
+        public int NextLevel { get; }
+        public bool Ready { get; }
+        public string[] Lines { get; }
+    }
 }

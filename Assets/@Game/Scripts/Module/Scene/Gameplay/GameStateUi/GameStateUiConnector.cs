@@ -21,6 +21,7 @@ namespace ProjectTA.Module.GameStateUi
             Subscribe<TreeChoppedMessage>(_gameStateUi.OnTreeChopped);
             Subscribe<PlayerStatsChangedMessage>(_gameStateUi.OnPlayerStatsChanged);
             Subscribe<StatueUpgradedMessage>(_gameStateUi.OnStatueUpgraded);
+            Subscribe<StatueGateStatusMessage>(_gameStateUi.OnStatueGateStatus);
         }
 
         protected override void Disconnect()
@@ -36,6 +37,7 @@ namespace ProjectTA.Module.GameStateUi
             Unsubscribe<TreeChoppedMessage>(_gameStateUi.OnTreeChopped);
             Unsubscribe<PlayerStatsChangedMessage>(_gameStateUi.OnPlayerStatsChanged);
             Unsubscribe<StatueUpgradedMessage>(_gameStateUi.OnStatueUpgraded);
+            Unsubscribe<StatueGateStatusMessage>(_gameStateUi.OnStatueGateStatus);
         }
     }
 }

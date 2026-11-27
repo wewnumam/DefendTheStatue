@@ -279,7 +279,12 @@ namespace ProjectTA.Module.PlayerCharacter
             {
                 float targetAngle = Mathf.Atan2(_smoothedAim.y, _smoothedAim.x) * Mathf.Rad2Deg
                     + _aimRotationOffset;
-                _rb.MoveRotation(targetAngle);
+
+                // The rig's Rigidbody2D carries FreezeRotation, and MoveRotation honours constraints, so
+                // it silently did nothing: the pawn never turned and every arrow left on the same angle.
+                // Writing the transform pose turns the body regardless; the frozen constraint still keeps
+                // physics from spinning it.
+                transform.rotation = Quaternion.Euler(0f, 0f, targetAngle);
             }
         }
 

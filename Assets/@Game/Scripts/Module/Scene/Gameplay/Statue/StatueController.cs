@@ -77,6 +77,41 @@ namespace ProjectTA.Module.Statue
             {
                 Publish(new TerritoryUnlockedMessage(effect.UnlockedTerritoryIndex));
             }
+
+            PublishGateStatus();
+        }
+
+        /// <summary>Panel opened: report the next level's gates and how far the run has got.</summary>
+        public void OnRequestGateStatus(RequestStatueGateStatusMessage message)
+        {
+            PublishGateStatus();
+        }
+
+        private void PublishGateStatus()
+        {
+            int nextLevel = _model.Level + 1;
+            if (_model.IsMaxLevel)
+            {
+                Publish(new StatueGateStatusMessage(_model.Level, false, new string[0]));
+                return;
+            }
+
+            int walls0 = _wallSegmentsBuilt.Length > 0 ? _wallSegmentsBuilt[0] : 0;
+            int walls1 = _wallSegmentsBuilt.Length > 1 ? _wallSegmentsBuilt[1] : 0;
+
+            StatueGateLine[] gates = StatueUpgradeGates.Describe(
+                nextLevel, walls0, _guardsAtLevel3, walls1, _guardsAtLevel5, _monstersKilled, _bossDefeated);
+
+            string[] lines = new string[gates.Length];
+            for (int i = 0; i < gates.Length; i++)
+            {
+                lines[i] = gates[i].Format();
+            }
+
+            bool ready = StatueUpgradeGates.IsReady(
+                nextLevel, walls0, _guardsAtLevel3, walls1, _guardsAtLevel5, _monstersKilled, _bossDefeated);
+
+            Publish(new StatueGateStatusMessage(nextLevel, ready, lines));
         }
 
         public void OnRequestDamage(RequestStatueDamageMessage message)
@@ -110,11 +145,13 @@ namespace ProjectTA.Module.Statue
             }
 
             _wallSegmentsBuilt[message.TerritoryIndex]++;
+            PublishGateStatus();
         }
 
         public void OnMonsterKilled(MonsterKilledMessage message)
         {
             _monstersKilled++;
+            PublishGateStatus();
         }
 
         /// <summary>
@@ -132,12 +169,15 @@ namespace ProjectTA.Module.Statue
             {
                 _guardsAtLevel3++;
             }
+
+            PublishGateStatus();
         }
 
         /// <summary>GDD §5: levels 8-10 accept (or, at 10, demand) the boss kill.</summary>
         public void OnBossDefeated(BossDefeatedMessage message)
         {
             _bossDefeated = true;
+            PublishGateStatus();
         }
 
         public void OnPlayerStatsChanged(PlayerStatsChangedMessage message)
@@ -194,6 +234,8 @@ namespace ProjectTA.Module.Statue
                 {
                     _view.SetLevel(_model.Level);
                 }
+
+                PublishGateStatus();
             }
         }
 
