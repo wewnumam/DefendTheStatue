@@ -2865,7 +2865,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 166, y: -120}
+  m_AnchoredPosition: {x: 166, y: -208}
   m_SizeDelta: {x: 300, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &888038301
@@ -3339,6 +3339,9 @@ MonoBehaviour:
   _recoveringColor: {r: 0.35, g: 0.9, b: 0.4, a: 1}
   _purgingColor: {r: 0.95, g: 0.3, b: 0.3, a: 1}
   _buffedSprite: {fileID: 0}
+  _attackFlashColor: {r: 1, g: 0.85, b: 0.3, a: 1}
+  _attackFlashSeconds: 0.12
+  _tracerSeconds: 0.08
 --- !u!4 &900900003
 Transform:
   m_ObjectHideFlags: 0
@@ -5069,7 +5072,7 @@ Transform:
   m_GameObject: {fileID: 1427368824}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 100, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -200, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6096,7 +6099,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 166, y: -40}
+  m_AnchoredPosition: {x: 166, y: -128}
   m_SizeDelta: {x: 300, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1692543528
@@ -6653,7 +6656,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 166, y: -200}
+  m_AnchoredPosition: {x: 166, y: -288}
   m_SizeDelta: {x: 300, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1846666570

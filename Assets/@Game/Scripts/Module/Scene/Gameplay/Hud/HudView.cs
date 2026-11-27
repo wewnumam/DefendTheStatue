@@ -109,6 +109,57 @@ namespace ProjectTA.Module.Hud
         private readonly Image[] _skillBoxFills = new Image[SkillBoxCount];
         private readonly Image[] _skillBoxIcons = new Image[SkillBoxCount];
         private readonly Image[] _skillBoxLocks = new Image[SkillBoxCount];
+
+        /// <summary>Keycap number, lock chrome and the unlocked frame, so a locked box hides its gold chrome.</summary>
+        private readonly Image[] _skillBoxNumbers = new Image[SkillBoxCount];
+        private readonly Image[] _skillBoxLockFills = new Image[SkillBoxCount];
+        private readonly Image[] _skillBoxLockFrames = new Image[SkillBoxCount];
+        private readonly Image[] _skillBoxChrome = new Image[SkillBoxCount];
+        private readonly Sprite[] _skillNumbers = new Sprite[4];
+        private Sprite _lockFillArt;
+        private Sprite _lockFrameArt;
+
+        /// <summary>Current weapon tile: the art's own frame/fill plus the sword/bow icon.</summary>
+        private const string NumberRoot = "Sprites/UI Skill Icon/Nomer Skill/";
+        private const string WeaponArtRoot = "Sprites/UI Skill Icon/";
+        private const float WeaponTileSize = 72f;
+
+        private GameObject _weaponTileRoot;
+        private Image _weaponTileIcon;
+        private Sprite _weaponFrameArt;
+        private Sprite _weaponFillArt;
+        private Sprite _weaponSwordIcon;
+        private Sprite _weaponBowIcon;
+        private Sprite _weaponArrowLeft;
+        private Sprite _weaponArrowRight;
+
+        /// <summary>Input hints: WASD keys and the three mouse buttons, both with used/idle art.</summary>
+        private const string KeyArtRoot = "Sprites/UI Keyboard/";
+        private const string MouseArtRoot = "Sprites/UI Mouse/";
+        private const float KeyWidth = 30f;
+        private const float KeyHeight = 32f;
+        private const float MouseWidth = 22f;
+        private const float MouseHeight = 32f;
+
+        private static readonly string[] KeyNames = { "W", "A", "S", "D" };
+        private static readonly string[] MouseNames = { "Klik Kiri", "Klik Tengah", "Klik Kanan" };
+
+        private readonly Image[] _keyImages = new Image[4];
+        private readonly Sprite[] _keyUsed = new Sprite[4];
+        private readonly Sprite[] _keyIdle = new Sprite[4];
+        private readonly bool[] _keyDown = new bool[4];
+        private readonly Image[] _mouseImages = new Image[3];
+        private readonly Sprite[] _mouseUsed = new Sprite[3];
+        private readonly Sprite[] _mouseIdle = new Sprite[3];
+        private readonly bool[] _mouseDown = new bool[3];
+        private bool _inputHintsBuilt;
+
+        /// <summary>GDD §5 statue bar art: full-width frame/fill plus the crown badge over its centre.</summary>
+        private const string StatueArtRoot = "Sprites/UI (God Statue)/";
+
+        private Image _statueFillArt;
+        private bool _statueArtBuilt;
+
         private readonly TMP_Text[] _skillBoxTimers = new TMP_Text[SkillBoxCount];
         private Sprite _lockIcon;
         private Sprite _boxFillArt;
@@ -172,6 +223,12 @@ namespace ProjectTA.Module.Hud
         public void SetStatueHealth(float health, float maxHealth)
         {
             SetBar(_statueSlider, health, maxHealth);
+            EnsureStatueArt();
+
+            if (_statueFillArt != null)
+            {
+                _statueFillArt.fillAmount = maxHealth > 0f ? Mathf.Clamp01(health / maxHealth) : 0f;
+            }
         }
 
         /// <summary>GDD §15: three circular gauges bottom-left, driven by the same stats message.</summary>
@@ -273,6 +330,11 @@ namespace ProjectTA.Module.Hud
         /// <summary>GDD §21: the statue bar reads red while a monster stands in the heal zone.</summary>
         public void SetStatueTainted(bool tainted)
         {
+            if (_statueFillArt != null)
+            {
+                _statueFillArt.color = tainted ? new Color(0.9f, 0.25f, 0.25f, 1f) : Color.white;
+            }
+
             if (_statueSlider == null || _statueSlider.fillRect == null)
             {
                 return;
@@ -335,6 +397,22 @@ namespace ProjectTA.Module.Hud
                     : onWeapon ? Color.white : IconOffWeapon;
 
                 _skillBoxLocks[i].enabled = !box.Unlocked;
+
+                // Locked boxes wear the lock chrome; unlocked boxes wear the gold frame.
+                if (_skillBoxLockFills[i] != null)
+                {
+                    _skillBoxLockFills[i].enabled = !box.Unlocked;
+                }
+
+                if (_skillBoxLockFrames[i] != null)
+                {
+                    _skillBoxLockFrames[i].enabled = !box.Unlocked;
+                }
+
+                if (_skillBoxChrome[i] != null)
+                {
+                    _skillBoxChrome[i].enabled = box.Unlocked;
+                }
 
                 Color state = box.Active ? BoxActive
                     : cooling ? BoxOnCooldown
@@ -404,10 +482,24 @@ namespace ProjectTA.Module.Hud
                 _skillBoxLocks[i] = CreateIcon(rect, "Lock", _lockIcon);
                 _skillBoxLocks[i].enabled = false;
 
+                if (_lockFillArt != null)
+                {
+                    _skillBoxLockFills[i] = CreateOverlay(rect, "LockFill", _lockFillArt);
+                    _skillBoxLockFills[i].enabled = false;
+                }
+
+                if (_lockFrameArt != null)
+                {
+                    _skillBoxLockFrames[i] = CreateOverlay(rect, "LockFrame", _lockFrameArt);
+                    _skillBoxLockFrames[i].enabled = false;
+                }
+
                 if (_boxFrameArt != null)
                 {
-                    CreateOverlay(rect, "Frame", _boxFrameArt);
+                    _skillBoxChrome[i] = CreateOverlay(rect, "Frame", _boxFrameArt);
                 }
+
+                _skillBoxNumbers[i] = CreateBadge(rect, "Number", _skillNumbers[i % 4]);
 
                 _skillBoxTimers[i] = CreateText(
                     "Timer", new Vector2(0.5f, 0f), new Vector2(0f, 2f), new Vector2(SkillBoxSize, 20f), 16f);
@@ -429,6 +521,13 @@ namespace ProjectTA.Module.Hud
             _lockIcon = LoadSprite(LockIconPath);
             _boxFillArt = LoadSprite(BoxFillPath);
             _boxFrameArt = LoadSprite(BoxFramePath);
+            _lockFillArt = LoadSprite("Sprites/UI Skill Icon/UI Skill Lock atau off/fill");
+            _lockFrameArt = LoadSprite("Sprites/UI Skill Icon/UI Skill Lock atau off/frame");
+
+            for (int i = 0; i < _skillNumbers.Length; i++)
+            {
+                _skillNumbers[i] = LoadSprite(NumberRoot + (i + 1));
+            }
 
             for (int i = 0; i < SkillBoxCount; i++)
             {
@@ -463,10 +562,269 @@ namespace ProjectTA.Module.Hud
             return image;
         }
 
+        /// <summary>Small keycap number in the box's top-left corner: 1-4, repeated for both weapon sets.</summary>
+        private Image CreateBadge(RectTransform parent, string name, Sprite sprite)
+        {
+            GameObject go = new GameObject(name, typeof(RectTransform));
+            RectTransform rect = go.GetComponent<RectTransform>();
+            rect.SetParent(parent, false);
+            rect.anchorMin = rect.anchorMax = new Vector2(0f, 1f);
+            rect.pivot = new Vector2(0f, 1f);
+            rect.anchoredPosition = new Vector2(2f, -2f);
+            rect.sizeDelta = new Vector2(16f, 19f);
+
+            Image image = go.AddComponent<Image>();
+            image.sprite = sprite;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+            return image;
+        }
+
+        /// <summary>GDD §15 weapon tile: equipped weapon between two switch arrows, bottom-centre.</summary>
+        private void EnsureWeaponTile()
+        {
+            if (_weaponTileRoot != null)
+            {
+                return;
+            }
+
+            _weaponFrameArt = LoadSprite(WeaponArtRoot + "UI Weapon Used/frame");
+            _weaponFillArt = LoadSprite(WeaponArtRoot + "UI Weapon Used/fill");
+            _weaponSwordIcon = LoadSprite(WeaponArtRoot + "UI SKILL DAN WEAPON/Pedang");
+            _weaponBowIcon = LoadSprite(WeaponArtRoot + "UI SKILL DAN WEAPON/Bow");
+            _weaponArrowLeft = LoadSprite(WeaponArtRoot + "UI Weapon Used/Panah Kiri");
+            _weaponArrowRight = LoadSprite(WeaponArtRoot + "UI Weapon Used/Panah Kanan");
+
+            _weaponTileRoot = new GameObject("WeaponTile", typeof(RectTransform));
+            RectTransform rect = _weaponTileRoot.GetComponent<RectTransform>();
+            rect.SetParent(transform, false);
+            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0f);
+            rect.pivot = new Vector2(0.5f, 0f);
+            rect.anchoredPosition = new Vector2(0f, 52f);
+            rect.sizeDelta = new Vector2(WeaponTileSize, WeaponTileSize);
+
+            if (_weaponFillArt != null)
+            {
+                CreateStretched(rect, "Fill", _weaponFillArt);
+            }
+
+            _weaponTileIcon = CreateIcon(rect, "Weapon", _weaponSwordIcon);
+
+            if (_weaponFrameArt != null)
+            {
+                CreateStretched(rect, "Frame", _weaponFrameArt);
+            }
+
+            CreateArrow(rect, "Prev", _weaponArrowLeft, -56f);
+            CreateArrow(rect, "Next", _weaponArrowRight, 56f);
+            SetWeaponIcon(_weapon);
+        }
+
+        private void CreateArrow(RectTransform parent, string name, Sprite sprite, float x)
+        {
+            GameObject go = new GameObject(name, typeof(RectTransform));
+            RectTransform rect = go.GetComponent<RectTransform>();
+            rect.SetParent(parent, false);
+            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = new Vector2(x, 0f);
+            rect.sizeDelta = new Vector2(18f, 20f);
+
+            Image image = go.AddComponent<Image>();
+            image.sprite = sprite;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+        }
+
+        private void SetWeaponIcon(EnumManager.WeaponKind weapon)
+        {
+            if (_weaponTileIcon == null)
+            {
+                return;
+            }
+
+            Sprite art = weapon == EnumManager.WeaponKind.Bow ? _weaponBowIcon : _weaponSwordIcon;
+            if (art != null)
+            {
+                _weaponTileIcon.sprite = art;
+            }
+        }
+
+        /// <summary>
+        /// GDD §3 controls: WASD inverted-T, mouse buttons in a row under the weapon tile. The art ships
+        /// a used and an idle frame per key, so the hint doubles as press feedback.
+        /// </summary>
+        private void EnsureInputHints()
+        {
+            if (_inputHintsBuilt)
+            {
+                return;
+            }
+
+            _inputHintsBuilt = true;
+
+            for (int i = 0; i < KeyNames.Length; i++)
+            {
+                _keyUsed[i] = LoadSprite(KeyArtRoot + KeyNames[i] + " (Used)");
+                _keyIdle[i] = LoadSprite(KeyArtRoot + KeyNames[i] + " (Noused)");
+            }
+
+            for (int i = 0; i < MouseNames.Length; i++)
+            {
+                _mouseUsed[i] = LoadSprite(MouseArtRoot + MouseNames[i] + " (Used)");
+                _mouseIdle[i] = LoadSprite(MouseArtRoot + MouseNames[i] + " (Unused)");
+            }
+
+            GameObject root = new GameObject("InputHints", typeof(RectTransform));
+            RectTransform rect = root.GetComponent<RectTransform>();
+            rect.SetParent(transform, false);
+            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0f);
+            rect.pivot = new Vector2(0.5f, 0f);
+            rect.anchoredPosition = Vector2.zero;
+            rect.sizeDelta = new Vector2(200f, 200f);
+
+            _keyImages[0] = CreateHint(rect, "KeyW", _keyIdle[0], new Vector2(0f, 164f), new Vector2(KeyWidth, KeyHeight));
+            _keyImages[1] = CreateHint(rect, "KeyA", _keyIdle[1], new Vector2(-33f, 131f), new Vector2(KeyWidth, KeyHeight));
+            _keyImages[2] = CreateHint(rect, "KeyS", _keyIdle[2], new Vector2(0f, 131f), new Vector2(KeyWidth, KeyHeight));
+            _keyImages[3] = CreateHint(rect, "KeyD", _keyIdle[3], new Vector2(33f, 131f), new Vector2(KeyWidth, KeyHeight));
+
+            _mouseImages[0] = CreateHint(rect, "MouseL", _mouseIdle[0], new Vector2(-26f, 10f), new Vector2(MouseWidth, MouseHeight));
+            _mouseImages[1] = CreateHint(rect, "MouseM", _mouseIdle[1], new Vector2(0f, 10f), new Vector2(MouseWidth, MouseHeight));
+            _mouseImages[2] = CreateHint(rect, "MouseR", _mouseIdle[2], new Vector2(26f, 10f), new Vector2(MouseWidth, MouseHeight));
+        }
+
+        private static Image CreateHint(RectTransform parent, string name, Sprite sprite, Vector2 position, Vector2 size)
+        {
+            GameObject go = new GameObject(name, typeof(RectTransform));
+            RectTransform rect = go.GetComponent<RectTransform>();
+            rect.SetParent(parent, false);
+            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0f);
+            rect.pivot = new Vector2(0.5f, 0f);
+            rect.anchoredPosition = position;
+            rect.sizeDelta = size;
+
+            Image image = go.AddComponent<Image>();
+            image.sprite = sprite;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+            return image;
+        }
+
+        private void UpdateInputHints()
+        {
+            Keyboard keyboard = Keyboard.current;
+            if (keyboard == null)
+            {
+                return;
+            }
+
+            EnsureInputHints();
+
+            UnityEngine.InputSystem.Controls.KeyControl[] keys =
+                { keyboard.wKey, keyboard.aKey, keyboard.sKey, keyboard.dKey };
+            for (int i = 0; i < keys.Length; i++)
+            {
+                SetHint(_keyImages[i], keys[i].isPressed, _keyUsed[i], _keyIdle[i]);
+            }
+
+            Mouse mouse = Mouse.current;
+            if (mouse == null)
+            {
+                return;
+            }
+
+            SetHint(_mouseImages[0], mouse.leftButton.isPressed, _mouseUsed[0], _mouseIdle[0]);
+            SetHint(_mouseImages[1], mouse.middleButton.isPressed, _mouseUsed[1], _mouseIdle[1]);
+            SetHint(_mouseImages[2], mouse.rightButton.isPressed, _mouseUsed[2], _mouseIdle[2]);
+        }
+
+        /// <summary>A missing "used" sprite leaves the idle key up rather than blanking the hint.</summary>
+        private static void SetHint(Image image, bool pressed, Sprite used, Sprite idle)
+        {
+            if (image == null)
+            {
+                return;
+            }
+
+            Sprite art = pressed && used != null ? used : idle;
+            if (art != null && image.sprite != art)
+            {
+                image.sprite = art;
+            }
+        }
+
+        /// <summary>GDD §5: the statue bar wears the full-width frame/fill art plus the crown badge.</summary>
+        private void EnsureStatueArt()
+        {
+            if (_statueArtBuilt)
+            {
+                return;
+            }
+
+            _statueArtBuilt = true;
+            if (_statueSlider == null)
+            {
+                return;
+            }
+
+            Sprite fill = LoadSprite(StatueArtRoot + "Fill (God Statue)");
+            Sprite frame = LoadSprite(StatueArtRoot + "Frame (God Statue)");
+            Sprite icon = LoadSprite(StatueArtRoot + "Icon Health Bar (God Statue)");
+            if (fill == null || frame == null)
+            {
+                return;
+            }
+
+            RectTransform rect = _statueSlider.GetComponent<RectTransform>();
+
+            _statueFillArt = CreateStretched(rect, "GodFill", fill);
+            _statueFillArt.type = Image.Type.Filled;
+            _statueFillArt.fillMethod = Image.FillMethod.Horizontal;
+            _statueFillArt.fillAmount = 1f;
+
+            CreateStretched(rect, "GodFrame", frame);
+
+            if (icon == null)
+            {
+                return;
+            }
+
+            GameObject badge = new GameObject("GodIcon", typeof(RectTransform));
+            RectTransform badgeRect = badge.GetComponent<RectTransform>();
+            badgeRect.SetParent(rect, false);
+            badgeRect.anchorMin = badgeRect.anchorMax = new Vector2(0.5f, 0.5f);
+            badgeRect.pivot = new Vector2(0.5f, 0.5f);
+            badgeRect.anchoredPosition = Vector2.zero;
+            badgeRect.sizeDelta = new Vector2(96f, 70f);
+
+            Image badgeImage = badge.AddComponent<Image>();
+            badgeImage.sprite = icon;
+            badgeImage.preserveAspect = true;
+            badgeImage.raycastTarget = false;
+        }
+
+        private static Image CreateStretched(RectTransform parent, string name, Sprite sprite)
+        {
+            GameObject go = new GameObject(name, typeof(RectTransform));
+            RectTransform rect = go.GetComponent<RectTransform>();
+            rect.SetParent(parent, false);
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+
+            Image image = go.AddComponent<Image>();
+            image.sprite = sprite;
+            image.raycastTarget = false;
+            return image;
+        }
+
         /// <summary>Which weapon is in hand, mirrored from the skill module's resolved switch.</summary>
         public void SetWeapon(EnumManager.WeaponKind weapon)
         {
             _weapon = weapon;
+            EnsureWeaponTile();
+            SetWeaponIcon(weapon);
 
             if (_weaponText != null)
             {
@@ -608,6 +966,7 @@ namespace ProjectTA.Module.Hud
         private void Update()
         {
             UpdatePointer();
+            UpdateInputHints();
 
             if (_clockText == null || _clockSeconds < 540)
             {
@@ -633,7 +992,8 @@ namespace ProjectTA.Module.Hud
                 return;
             }
 
-            _clockText = CreateText("RunClock", new Vector2(0.5f, 1f), new Vector2(0f, -24f), new Vector2(260f, 52f), 38f);
+            // Below the God Statue bar (80 tall): the clock and the boss bar would otherwise sit on it.
+            _clockText = CreateText("RunClock", new Vector2(0.5f, 1f), new Vector2(0f, -88f), new Vector2(260f, 52f), 38f);
             _clockText.text = "00:00";
 
             _bossBarRoot = new GameObject("BossBar", typeof(RectTransform));
@@ -641,7 +1001,7 @@ namespace ProjectTA.Module.Hud
             barRect.SetParent(transform, false);
             barRect.anchorMin = barRect.anchorMax = new Vector2(0.5f, 1f);
             barRect.pivot = new Vector2(0.5f, 1f);
-            barRect.anchoredPosition = new Vector2(0f, -84f);
+            barRect.anchoredPosition = new Vector2(0f, -146f);
             barRect.sizeDelta = new Vector2(BossBarWidth, 22f);
 
             RawImage background = _bossBarRoot.AddComponent<RawImage>();

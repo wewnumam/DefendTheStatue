@@ -22,6 +22,9 @@ namespace ProjectTA.Module.Guard
 
         private readonly List<int> _targets = new List<int>();
 
+        /// <summary>Monster positions in the same order they are mirrored: the guards chase these.</summary>
+        private readonly List<Vector2> _monsterTargets = new List<Vector2>();
+
         /// <summary>GDD §6 body numbers: guard walk speed is a multiple of the Stacker's base speed.</summary>
         private MonsterConstants _monsterConstants = new MonsterConstants();
 
@@ -121,6 +124,11 @@ namespace ProjectTA.Module.Guard
             _monsterKinds.Remove(message.MonsterId);
         }
 
+        public void OnGuardDamaged(GuardDamagedMessage message)
+        {
+            _view?.SetHealth(message.GuardIndex, message.Health, message.MaxHealth);
+        }
+
         public void OnGameState(GameStateMessage message)
         {
             if (message.GameState != EnumManager.GameState.Playing)
@@ -159,11 +167,19 @@ namespace ProjectTA.Module.Guard
         private void OnTick(float deltaSeconds)
         {
             _model.TickCooldowns(deltaSeconds);
+
+            _monsterTargets.Clear();
+            foreach (Vector2 position in _monsterPositions.Values)
+            {
+                _monsterTargets.Add(position);
+            }
+
             _model.Tick(
                 deltaSeconds,
                 _monsterConstants.SpeedPerSecond,
                 _zoneTainted,
-                StatueHealRadius * 0.5f);
+                StatueHealRadius * 0.5f,
+                _monsterTargets);
 
             SyncViews();
             BiteGuards(deltaSeconds);
@@ -197,6 +213,7 @@ namespace ProjectTA.Module.Guard
                 }
 
                 Publish(new GuardFiredMessage(guard.Position, target));
+                _view?.PlayAttack(shooter, guard.Position, target);
                 Publish(new RequestDamageMonsterMessage(
                     monsterId, _model.GetDamage(shooter), target));
             }

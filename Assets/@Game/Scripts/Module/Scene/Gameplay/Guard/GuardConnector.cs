@@ -17,6 +17,7 @@ namespace ProjectTA.Module.Guard
             Subscribe<MonsterDamagedMessage>(_guard.OnMonsterDamaged);
             Subscribe<MonsterKilledMessage>(_guard.OnMonsterKilled);
             Subscribe<HealZoneTaintMessage>(_guard.OnHealZoneTaint);
+            Subscribe<GuardDamagedMessage>(_guard.OnGuardDamaged);
             Subscribe<GameStateMessage>(_guard.OnGameState);
         }
 
@@ -29,6 +30,7 @@ namespace ProjectTA.Module.Guard
             Unsubscribe<MonsterDamagedMessage>(_guard.OnMonsterDamaged);
             Unsubscribe<MonsterKilledMessage>(_guard.OnMonsterKilled);
             Unsubscribe<HealZoneTaintMessage>(_guard.OnHealZoneTaint);
+            Unsubscribe<GuardDamagedMessage>(_guard.OnGuardDamaged);
             Unsubscribe<GameStateMessage>(_guard.OnGameState);
         }
     }

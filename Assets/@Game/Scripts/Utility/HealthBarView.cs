@@ -37,10 +37,29 @@ namespace ProjectTA.Utility
         /// </summary>
         public void Init(Transform owner, float ownerScale)
         {
+            Init(owner, ownerScale, null, null);
+        }
+
+        /// <summary>
+        /// Same bar with the caller's own frame/fill art, so one prefab serves monster, tree and guard
+        /// gauge sets. Null art keeps whatever the prefab already wires.
+        /// </summary>
+        public void Init(Transform owner, float ownerScale, Sprite frame, Sprite fill)
+        {
             if (owner == null || _frame == null || _fill == null)
             {
                 Debug.LogError("[HealthBar] Frame or fill is not wired on the bar prefab.");
                 return;
+            }
+
+            if (frame != null)
+            {
+                _frame.sprite = frame;
+            }
+
+            if (fill != null)
+            {
+                _fill.sprite = fill;
             }
 
             _fillScale = _fill.transform.localScale;
